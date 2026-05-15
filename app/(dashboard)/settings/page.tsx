@@ -1,0 +1,166 @@
+"use client";
+
+import React, { useState } from "react";
+import { Save, Shield, Bell, CreditCard, Percent } from "lucide-react";
+
+export default function SettingsPage() {
+  const [toggles, setToggles] = useState({
+    newOrder: true,
+    dispute: true,
+    system: true,
+    twoFactor: true,
+    ipWhitelist: false,
+  });
+
+  const toggle = (key: keyof typeof toggles) => {
+    setToggles(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-8 pb-20">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-semibold text-white">Platform Settings</h1>
+      </div>
+
+      <div className="space-y-6">
+        {/* Commission Settings */}
+        <section className="bg-[#111111] border border-white/5 rounded-2xl p-6 space-y-6">
+          <div className="flex items-center gap-2 text-zinc-100">
+            <Percent size={20} className="text-blue-500" />
+            <h2 className="text-xl font-semibold">Commission Settings</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-400">Purchase Commission (%)</label>
+              <input
+                type="number"
+                defaultValue={5}
+                className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-[#155DFC] transition-colors"
+              />
+              <p className="text-xs text-zinc-600">Standard commission rate for purchases</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-400">Trade Commission (%)</label>
+              <input
+                type="number"
+                defaultValue={2.5}
+                className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-[#155DFC] transition-colors"
+              />
+              <p className="text-xs text-zinc-600">Commission rate for trades</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Payment Gateway */}
+        <section className="bg-[#111111] border border-white/5 rounded-2xl p-6 space-y-6">
+          <div className="flex items-center gap-2 text-zinc-100">
+            <CreditCard size={20} className="text-blue-500" />
+            <h2 className="text-xl font-semibold">Payment Gateway</h2>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-400">Primary Payment Processor</label>
+              <input
+                type="text"
+                defaultValue="Stripe"
+                className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-[#155DFC] transition-colors"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-400">API Key</label>
+              <input
+                type="password"
+                defaultValue="sk_live_••••••••••••••••••••"
+                className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-[#155DFC] transition-colors"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="test-mode"
+                className="w-4 h-4 rounded border-white/10 bg-black text-[#155DFC] focus:ring-[#155DFC] focus:ring-offset-black"
+              />
+              <label htmlFor="test-mode" className="text-sm font-medium text-zinc-400">Enable Test Mode</label>
+            </div>
+          </div>
+        </section>
+
+        {/* Notification Settings */}
+        <section className="bg-[#111111] border border-white/5 rounded-2xl p-6 space-y-6">
+          <div className="flex items-center gap-2 text-zinc-100">
+            <Bell size={20} className="text-blue-500" />
+            <h2 className="text-xl font-semibold">Notification Settings</h2>
+          </div>
+          <div className="space-y-4">
+            {[
+              { key: 'newOrder', title: 'New Order Notifications', desc: 'Receive alerts for new orders' },
+              { key: 'dispute', title: 'Dispute Alerts', desc: 'Get notified about new disputes' },
+              { key: 'system', title: 'System Alerts', desc: 'Critical system notifications' },
+            ].map((item) => (
+              <div key={item.key} className="flex items-center justify-between p-4 bg-black/40 border border-white/5 rounded-xl">
+                <div>
+                  <h4 className="text-sm font-semibold text-zinc-100">{item.title}</h4>
+                  <p className="text-xs text-zinc-500">{item.desc}</p>
+                </div>
+                <button
+                  onClick={() => toggle(item.key as keyof typeof toggles)}
+                  className={`w-11 h-6 rounded-full transition-colors relative ${toggles[item.key as keyof typeof toggles] ? 'bg-[#155DFC]' : 'bg-zinc-700'}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${toggles[item.key as keyof typeof toggles] ? 'left-6' : 'left-1'}`} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Security Settings */}
+        <section className="bg-[#111111] border border-white/5 rounded-2xl p-6 space-y-6">
+          <div className="flex items-center gap-2 text-zinc-100">
+            <Shield size={20} className="text-blue-500" />
+            <h2 className="text-xl font-semibold">Security Settings</h2>
+          </div>
+          <div className="space-y-4">
+            {[
+              { key: 'twoFactor', title: 'Two-Factor Authentication', desc: 'Require 2FA for admin access' },
+              { key: 'ipWhitelist', title: 'IP Whitelist', desc: 'Restrict admin access by IP' },
+            ].map((item) => (
+              <div key={item.key} className="flex items-center justify-between p-4 bg-black/40 border border-white/5 rounded-xl">
+                <div>
+                  <h4 className="text-sm font-semibold text-zinc-100">{item.title}</h4>
+                  <p className="text-xs text-zinc-500">{item.desc}</p>
+                </div>
+                <button
+                  onClick={() => toggle(item.key as keyof typeof toggles)}
+                  className={`w-11 h-6 rounded-full transition-colors relative ${toggles[item.key as keyof typeof toggles] ? 'bg-[#155DFC]' : 'bg-zinc-700'}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${toggles[item.key as keyof typeof toggles] ? 'left-6' : 'left-1'}`} />
+                </button>
+              </div>
+            ))}
+            <div className="flex items-center justify-between p-4 bg-black/40 border border-white/5 rounded-xl">
+              <div>
+                <h4 className="text-sm font-semibold text-zinc-100">Session Timeout</h4>
+                <p className="text-xs text-zinc-500">Auto logout after inactivity</p>
+              </div>
+              <select className="bg-zinc-800 border border-white/10 rounded-lg px-3 py-1 text-xs text-zinc-200 focus:outline-none">
+                <option>30 minutes</option>
+                <option>1 hour</option>
+                <option>4 hours</option>
+                <option>Never</option>
+              </select>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <button className="flex items-center gap-2 bg-[#155DFC] hover:bg-blue-600 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95">
+          <Save size={20} />
+          <span>Save Settings</span>
+        </button>
+      </div>
+    </div>
+  );
+}

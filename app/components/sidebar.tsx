@@ -18,7 +18,9 @@ import {
   Bell,
   BarChart3,
   Settings,
+  LogOut,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const menuItems = [
   { name: "Overview", icon: LayoutDashboard, href: "/overview" },
@@ -39,6 +41,12 @@ const menuItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    // Perform any logout logic here
+    router.push("/login");
+  };
 
   return (
     <aside className="w-64 bg-[#111111] border-r border-white/5 flex flex-col h-screen sticky top-0 overflow-hidden">
@@ -70,6 +78,16 @@ export default function Sidebar() {
           );
         })}
       </nav>
+
+      <div className="p-4 border-t border-white/5">
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-500/10 transition-all duration-200 group"
+        >
+          <LogOut size={20} className="text-red-500" />
+          <span className="text-sm font-semibold">Logout</span>
+        </button>
+      </div>
     </aside>
   );
 }
