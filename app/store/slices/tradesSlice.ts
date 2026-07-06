@@ -1,6 +1,16 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { api } from "@/app/lib/api";
 
+export interface Trade {
+  id: string;
+  sender: string;
+  receiver: string;
+  senderProduct: string;
+  receiverProduct: string;
+  supplement: string;
+  status: string;
+}
+
 export const fetchTrades = createAsyncThunk("trades/fetchTrades", async () => {
   return await api.dashboard.getTrades();
 });
@@ -10,7 +20,7 @@ export const declineTrade = createAsyncThunk("trades/declineTrade", async (id: s
 });
 
 interface TradesState {
-  items: any[];
+  items: Trade[];
   loading: boolean;
   error: string | null;
 }
@@ -33,7 +43,24 @@ const tradesSlice = createSlice({
       })
       .addCase(fetchTrades.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload || [];
+        state.items = (action.payload || []).map((trade: any) => {
+          let senderProduct = trade.senderProduct || "";
+          let receiverProduct = trade.receiverProduct || "";
+          if (trade.offeredItems && (!senderProduct || !receiverProduct)) {
+            const parts = trade.offeredItems.split("↔");
+            senderProduct = parts[0]?.trim() || "Item A";
+            receiverProduct = parts[1]?.trim() || "Item B";
+          }
+          return {
+            id: trade.id || trade.tradeId || "",
+            sender: trade.sender || trade.userA || "User A",
+            receiver: trade.receiver || trade.userB || "User B",
+            senderProduct,
+            receiverProduct,
+            supplement: trade.supplement || (trade.valueMatch ? `+$${Math.max(0, 100 - trade.valueMatch)}` : "$0"),
+            status: trade.status || "Pending",
+          };
+        });
       })
       .addCase(fetchTrades.rejected, (state, action) => {
         state.loading = false;

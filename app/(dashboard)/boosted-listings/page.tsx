@@ -3,28 +3,15 @@
 import React, { useEffect } from "react";
 import { Star, CheckCircle2, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
-import { fetchBoostedListings } from "@/app/store/slices/boostedListingsSlice";
+import { fetchBoostedListings, BoostedListing } from "@/app/store/slices/boostedListingsSlice";
 
 export default function BoostedListingsPage() {
   const dispatch = useAppDispatch();
-  const { items, loading } = useAppSelector((state) => state.boostedListings);
+  const { items: boostedListings, loading } = useAppSelector((state) => state.boostedListings);
 
   useEffect(() => {
     dispatch(fetchBoostedListings());
   }, [dispatch]);
-
-  // Adapt listing data structure to what page expects:
-  const boostedListings = items.map((item: any, i: number) => ({
-    id: item.id || `BOOST-00${i+1}`,
-    name: item.item || item.name,
-    seller: item.seller,
-    level: item.level || (i % 2 === 0 ? "Premium" : "Standard"),
-    duration: item.duration || "7 days",
-    period: item.period || "2026-04-20 to 2026-04-27",
-    impressions: item.impressions || "12,450",
-    fee: item.fee || "$25.00",
-    status: item.status || "Active",
-  }));
 
   if (loading) {
     return (
@@ -60,7 +47,7 @@ export default function BoostedListingsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {boostedListings.map((item) => (
+              {boostedListings.map((item: BoostedListing) => (
                 <tr key={item.id} className="text-zinc-300 hover:bg-white/[0.02] transition-colors">
                   <td className="px-6 py-4 text-sm font-mono text-zinc-500">{item.id}</td>
                   <td className="px-6 py-4">

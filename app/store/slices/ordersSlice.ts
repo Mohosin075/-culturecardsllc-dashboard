@@ -1,6 +1,16 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { api } from "@/app/lib/api";
 
+export interface OrderItem {
+  id: string;
+  buyer: string;
+  seller: string;
+  item: string;
+  totalPrice: string;
+  status: string;
+  deliveryDate: string;
+}
+
 export const fetchOrders = createAsyncThunk("orders/fetchOrders", async () => {
   return await api.dashboard.getOrders();
 });
@@ -10,7 +20,7 @@ export const refundOrder = createAsyncThunk("orders/refundOrder", async (id: str
 });
 
 interface OrdersState {
-  items: any[];
+  items: OrderItem[];
   loading: boolean;
   error: string | null;
 }
@@ -33,7 +43,15 @@ const ordersSlice = createSlice({
       })
       .addCase(fetchOrders.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload || [];
+        state.items = (action.payload || []).map((o: any) => ({
+          id: o.id || o.orderId || "",
+          buyer: o.buyer || "Buyer",
+          seller: o.seller || "Seller",
+          item: o.item || "Collector Item",
+          totalPrice: typeof o.totalPrice === "number" ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(o.totalPrice) : (o.totalPrice || o.price || ""),
+          status: o.status || "Pending",
+          deliveryDate: o.deliveryDate || "",
+        }));
       })
       .addCase(fetchOrders.rejected, (state, action) => {
         state.loading = false;

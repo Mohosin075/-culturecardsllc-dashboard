@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, Filter, Eye, Trash2, Star, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
-import { fetchListings, deleteListing } from "@/app/store/slices/listingsSlice";
+import { fetchListings, deleteListing, toggleBoostListing, Listing } from "@/app/store/slices/listingsSlice";
 
 export default function ListingsPage() {
   const dispatch = useAppDispatch();
@@ -20,12 +20,12 @@ export default function ListingsPage() {
     }
   };
 
-  const handleToggleBoost = (productId: string) => {
-    alert("Boost status updated for listing: " + productId);
+  const handleToggleBoost = (productId: string, boosted: boolean) => {
+    dispatch(toggleBoostListing({ id: productId, boosted }));
   };
 
   const filteredListings = listings.filter(
-    (item) =>
+    (item: Listing) =>
       item.item?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.seller?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.category?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -135,7 +135,7 @@ export default function ListingsPage() {
                         <Trash2 size={18} />
                       </button>
                       <button
-                        onClick={() => handleToggleBoost(item.id)}
+                        onClick={() => handleToggleBoost(item.id, item.boosted)}
                         className={`${item.boosted ? 'text-yellow-500' : 'hover:text-white'} transition-colors`}
                         title="Toggle Boost"
                       >

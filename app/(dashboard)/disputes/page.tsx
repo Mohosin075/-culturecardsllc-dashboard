@@ -12,12 +12,12 @@ import {
   Loader2
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
-import { fetchDisputes, resolveDispute, rejectDispute } from "@/app/store/slices/disputesSlice";
+import { fetchDisputes, resolveDispute, rejectDispute, DisputeItem } from "@/app/store/slices/disputesSlice";
 
 export default function DisputesPage() {
   const dispatch = useAppDispatch();
   const { items: disputes, loading } = useAppSelector((state) => state.disputes);
-  const [selectedDispute, setSelectedDispute] = useState<any | null>(null);
+  const [selectedDispute, setSelectedDispute] = useState<DisputeItem | null>(null);
 
   useEffect(() => {
     dispatch(fetchDisputes());
@@ -48,7 +48,7 @@ export default function DisputesPage() {
       <h1 className="text-3xl font-semibold text-white">Dispute Management</h1>
 
       <div className="space-y-6">
-        {disputes.map((dispute) => (
+        {disputes.map((dispute: DisputeItem) => (
           <div key={dispute.id} className="bg-[#111111] border border-white/5 rounded-2xl p-6 space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">

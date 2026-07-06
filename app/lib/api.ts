@@ -241,6 +241,15 @@ class ApiClient {
   };
 
   public products = {
+    update: (productId: string, data: { isFeatured?: boolean }) =>
+      this.request(
+        `/products/${productId}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        },
+        { success: true }
+      ),
     delete: (productId: string) =>
       this.request(`/products/${productId}`, { method: "DELETE" }, { success: true }),
   };

@@ -7,6 +7,7 @@ import {
    fetchSellerVerifications,
    approveVerification,
    rejectVerification,
+   SellerVerificationRequest
 } from "@/app/store/slices/sellerVerificationSlice";
 
 export default function SellerVerificationPage() {
@@ -40,7 +41,7 @@ export default function SellerVerificationPage() {
       <h1 className="text-3xl font-semibold text-white">Seller Verification Requests</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {requests.map((request) => (
+        {requests.map((request: SellerVerificationRequest) => (
           <div key={request.id} className="bg-[#111111] border border-white/5 rounded-2xl p-6 space-y-6 flex flex-col">
             {/* Header */}
             <div className="flex justify-between items-start">

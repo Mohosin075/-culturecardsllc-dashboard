@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, Filter, Eye, RefreshCcw, DollarSign, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
-import { fetchOrders, refundOrder } from "@/app/store/slices/ordersSlice";
+import { fetchOrders, refundOrder, OrderItem } from "@/app/store/slices/ordersSlice";
 
 export default function OrdersPage() {
   const dispatch = useAppDispatch();
@@ -22,7 +22,7 @@ export default function OrdersPage() {
   };
 
   const filteredOrders = orders.filter(
-    (order) =>
+    (order: OrderItem) =>
       order.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.buyer?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.seller?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -97,7 +97,7 @@ export default function OrdersPage() {
                     <span className="text-zinc-200 text-sm font-medium">{order.item}</span>
                   </td>
                   <td className="px-6 py-4 font-bold text-[#10b981] text-lg">
-                    {order.totalPrice || order.price}
+                    {order.totalPrice}
                   </td>
                   <td className="px-6 py-4">
                     <span

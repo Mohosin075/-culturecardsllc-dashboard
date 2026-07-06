@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, Filter, Eye, X, ArrowLeftRight, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
-import { fetchTrades, declineTrade } from "@/app/store/slices/tradesSlice";
+import { fetchTrades, declineTrade, Trade } from "@/app/store/slices/tradesSlice";
 
 export default function TradesPage() {
   const dispatch = useAppDispatch();
@@ -21,7 +21,7 @@ export default function TradesPage() {
   };
 
   const filteredTrades = trades.filter(
-    (trade) =>
+    (trade: Trade) =>
       trade.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       trade.sender?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       trade.receiver?.toLowerCase().includes(searchQuery.toLowerCase()) ||
