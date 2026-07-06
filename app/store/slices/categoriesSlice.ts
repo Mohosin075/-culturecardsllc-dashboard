@@ -32,8 +32,17 @@ export const deleteCategory = createAsyncThunk(
   }
 );
 
+export interface Category {
+  id: string;
+  name: string;
+  count: number;
+  iconName: string;
+  subcategories: string[];
+  description?: string;
+}
+
 interface CategoriesState {
-  items: any[];
+  items: Category[];
   loading: boolean;
   error: string | null;
 }
@@ -57,7 +66,13 @@ const categoriesSlice = createSlice({
       })
       .addCase(fetchCategories.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload || [];
+        state.items = (action.payload || []).map((cat: any, idx: number) => ({
+          ...cat,
+          id: cat.id || cat.categoryId || `CAT-${(idx + 1).toString().padStart(3, '0')}`,
+          count: cat.count !== undefined ? cat.count : (cat.listingsCount || 0),
+          iconName: cat.iconName || (cat.name === "Sneakers" ? "Footprints" : (cat.name === "Trading Cards" ? "Cards" : (cat.name === "Watches" ? "Watch" : (cat.name === "Tech" ? "Laptop" : "Cards")))),
+          subcategories: cat.subcategories || [],
+        }));
       })
       .addCase(fetchCategories.rejected, (state, action) => {
         state.loading = false;

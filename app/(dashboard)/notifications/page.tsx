@@ -29,6 +29,7 @@ import {
   fetchNotifications,
   markAllNotificationsRead,
   markNotificationRead,
+  type SystemNotification,
 } from "@/app/store/slices/notificationsSlice";
 
 export default function NotificationsPage() {
@@ -48,11 +49,11 @@ export default function NotificationsPage() {
   };
 
   // Adapt notification objects
-  const notifications = items.map((item: any, i: number) => ({
+  const notifications = items.map((item: SystemNotification, i: number) => ({
     id: item.id || i,
     title: item.title,
     category: item.category || (item.read ? "Read Notification" : "New Notification"),
-    content: item.text || item.content,
+    content: item.text,
     time: item.date || "Just now",
     type: item.type || "system",
     isUnread: !item.read,

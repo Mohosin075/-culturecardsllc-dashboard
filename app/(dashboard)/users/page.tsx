@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, Filter, Eye, UserMinus, ShieldCheck, Star, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
-import { fetchUsers, updateUserStatus, deleteUser } from "@/app/store/slices/usersSlice";
+import { fetchUsers, updateUserStatus, deleteUser, type User } from "@/app/store/slices/usersSlice";
 
 export default function UsersPage() {
   const dispatch = useAppDispatch();
@@ -83,9 +83,9 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="text-zinc-300 hover:bg-white/[0.02] transition-colors">
-                  <td className="px-6 py-4 text-sm">{user.id}</td>
+              {filteredUsers.map((user: User) => (
+                <tr key={user.userId} className="text-zinc-300 hover:bg-white/[0.02] transition-colors">
+                  <td className="px-6 py-4 text-sm">{user.userId}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-full ${user.color || 'bg-blue-500'} flex items-center justify-center text-white font-bold`}>
@@ -125,14 +125,14 @@ export default function UsersPage() {
                         <Eye size={18} />
                       </button>
                       <button
-                        onClick={() => handleToggleStatus(user.id, user.status)}
+                        onClick={() => handleToggleStatus(user.userId, user.status)}
                         className={`transition-colors ${user.status === "Active" ? "hover:text-red-500" : "hover:text-green-500"}`}
                         title={user.status === "Active" ? "Suspend User" : "Activate User"}
                       >
                         <UserMinus size={18} />
                       </button>
                       <button
-                        onClick={() => handleDeleteUser(user.id)}
+                        onClick={() => handleDeleteUser(user.userId)}
                         className="hover:text-red-600 transition-colors"
                         title="Delete User"
                       >

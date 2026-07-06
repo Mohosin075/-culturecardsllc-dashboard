@@ -22,8 +22,18 @@ export const markNotificationRead = createAsyncThunk(
   }
 );
 
+export interface SystemNotification {
+  id: string | number;
+  title: string;
+  category?: string;
+  text: string;
+  date: string;
+  type: string;
+  read: boolean;
+}
+
 interface NotificationsState {
-  items: any[];
+  items: SystemNotification[];
   loading: boolean;
   error: string | null;
 }
@@ -46,7 +56,25 @@ const notificationsSlice = createSlice({
       })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload || [];
+        
+        let rawNotifications: any[] = [];
+        const payload = action.payload as any;
+
+        if (Array.isArray(payload)) {
+          rawNotifications = payload;
+        } else if (payload && typeof payload === "object") {
+          rawNotifications = payload.notifications || [];
+        }
+
+        state.items = rawNotifications.map((item: any, idx: number) => ({
+          id: item.id || `NTF-${(idx + 1).toString().padStart(3, '0')}`,
+          title: item.title || "Notification",
+          category: item.category,
+          text: item.text || item.message || item.content || "",
+          date: item.date || item.timeAgo || item.time || "Just now",
+          type: item.type || (item.category ? item.category.split(" ")[0].toLowerCase() : "system"),
+          read: item.read !== undefined ? item.read : (item.isRead !== undefined ? item.isRead : false),
+        }));
       })
       .addCase(fetchNotifications.rejected, (state, action) => {
         state.loading = false;

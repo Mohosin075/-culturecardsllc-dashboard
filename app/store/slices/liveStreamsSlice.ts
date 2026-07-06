@@ -12,9 +12,27 @@ export const cancelScheduledStream = createAsyncThunk(
   }
 );
 
+export interface LiveStream {
+  id: string;
+  title: string;
+  seller: string;
+  category: string;
+  viewers: number;
+  duration: string;
+  thumbnail?: string;
+}
+
+export interface ScheduledStream {
+  id: string;
+  title: string;
+  seller: string;
+  category: string;
+  time: string;
+}
+
 interface LiveStreamsState {
-  live: any[];
-  scheduled: any[];
+  live: LiveStream[];
+  scheduled: ScheduledStream[];
   loading: boolean;
   error: string | null;
 }

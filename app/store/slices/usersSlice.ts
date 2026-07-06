@@ -18,8 +18,20 @@ export const deleteUser = createAsyncThunk("users/deleteUser", async (userId: st
   return userId;
 });
 
+export interface User {
+  userId: string;
+  name: string;
+  username: string;
+  email: string;
+  role: string;
+  rating: number;
+  transactions: number;
+  status: "Active" | "Suspended";
+  color?: string;
+}
+
 interface UsersState {
-  items: any[];
+  items: User[];
   loading: boolean;
   error: string | null;
 }
@@ -43,7 +55,10 @@ const usersSlice = createSlice({
       })
       .addCase(fetchUsers.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload || [];
+        state.items = (action.payload || []).map((user: any) => ({
+          ...user,
+          userId: user.userId || user.id,
+        }));
       })
       .addCase(fetchUsers.rejected, (state, action) => {
         state.loading = false;
@@ -53,13 +68,13 @@ const usersSlice = createSlice({
       .addCase(updateUserStatus.fulfilled, (state, action) => {
         const { userId, status } = action.payload;
         state.items = state.items.map((user) =>
-          user.id === userId ? { ...user, status } : user
+          user.userId === userId ? { ...user, status: status as "Active" | "Suspended" } : user
         );
       })
       // Delete User
       .addCase(deleteUser.fulfilled, (state, action) => {
         const userId = action.payload;
-        state.items = state.items.filter((user) => user.id !== userId);
+        state.items = state.items.filter((user) => user.userId !== userId);
       });
   },
 });

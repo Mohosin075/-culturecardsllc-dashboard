@@ -3,7 +3,12 @@
 import React, { useEffect } from "react";
 import { Radio, Users, Clock, Flag, Star, Calendar, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
-import { fetchLiveStreams, cancelScheduledStream } from "@/app/store/slices/liveStreamsSlice";
+import {
+  fetchLiveStreams,
+  cancelScheduledStream,
+  type LiveStream,
+  type ScheduledStream,
+} from "@/app/store/slices/liveStreamsSlice";
 
 export default function LiveStreamsPage() {
   const dispatch = useAppDispatch();
@@ -41,10 +46,10 @@ export default function LiveStreamsPage() {
 
       {/* Currently Live Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {liveStreams.map((stream) => (
+        {liveStreams.map((stream: LiveStream) => (
           <div key={stream.id} className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden group">
             {/* Thumbnail Placeholder */}
-            <div className={`aspect-video w-full relative ${stream.thumbnail || 'bg-gradient-to-br from-indigo-900 to-blue-900'} flex items-center justify-center`}>
+            <div className={`aspect-video w-full relative ${stream.thumbnail ?? 'bg-gradient-to-br from-indigo-900 to-blue-900'} flex items-center justify-center`}>
               <Radio size={48} className="text-white/20 group-hover:scale-110 transition-transform duration-500" />
               <div className="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 uppercase">
                 <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
@@ -115,7 +120,7 @@ export default function LiveStreamsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {scheduledStreams.map((stream) => (
+                {scheduledStreams.map((stream: ScheduledStream) => (
                   <tr key={stream.id} className="text-zinc-300 hover:bg-white/[0.02] transition-colors">
                     <td className="px-6 py-4 text-xs font-mono text-zinc-500">{stream.id}</td>
                     <td className="px-6 py-4">

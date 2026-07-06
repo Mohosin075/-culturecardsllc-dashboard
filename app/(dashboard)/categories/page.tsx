@@ -21,6 +21,7 @@ import {
   addCategory,
   editCategory,
   deleteCategory,
+  type Category,
 } from "@/app/store/slices/categoriesSlice";
 
 export default function CategoriesPage() {
@@ -74,7 +75,7 @@ export default function CategoriesPage() {
 
       {/* Categories Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {categories.map((category) => {
+        {categories.map((category: Category) => {
           const Icon = getIconByName(category.iconName);
           return (
             <div key={category.id} className="bg-[#111111] border border-white/5 rounded-2xl p-6 space-y-6">

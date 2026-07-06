@@ -3,22 +3,36 @@
 import React, { useEffect } from "react";
 import { DollarSign, TrendingUp, Clock, CheckCircle, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
-import { fetchPayments } from "@/app/store/slices/paymentsSlice";
+import { fetchPayments, type Transaction } from "@/app/store/slices/paymentsSlice";
 
-const stats = [
-  { name: "Total Revenue", value: "$124,580", icon: DollarSign, color: "bg-green-500" },
-  { name: "Commission Earned", value: "$6,229", icon: TrendingUp, color: "bg-blue-500" },
-  { name: "Pending Payouts", value: "$3,450", icon: Clock, color: "bg-yellow-500" },
-  { name: "Completed Payouts", value: "$98,200", icon: CheckCircle, color: "bg-purple-500" },
-];
+const formatCurrency = (val: string | number) => {
+  if (typeof val === "string") {
+    if (val.startsWith("$")) return val;
+    const parsed = parseFloat(val);
+    if (isNaN(parsed)) return val;
+    val = parsed;
+  }
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(val);
+};
 
 export default function PaymentsPage() {
   const dispatch = useAppDispatch();
-  const { items: transactions, loading } = useAppSelector((state) => state.payments);
+  const { items: transactions, summary, loading } = useAppSelector((state) => state.payments);
 
   useEffect(() => {
     dispatch(fetchPayments());
   }, [dispatch]);
+
+  const stats = [
+    { name: "Total Revenue", value: summary ? formatCurrency(summary.totalRevenue) : "$124,580", icon: DollarSign, color: "bg-green-500" },
+    { name: "Commission Earned", value: summary ? formatCurrency(summary.commissionEarned) : "$6,229", icon: TrendingUp, color: "bg-blue-500" },
+    { name: "Pending Payouts", value: summary ? formatCurrency(summary.pendingPayouts) : "$3,450", icon: Clock, color: "bg-yellow-500" },
+    { name: "Completed Payouts", value: summary ? formatCurrency(summary.completedPayouts) : "$98,200", icon: CheckCircle, color: "bg-purple-500" },
+  ];
 
   if (loading) {
     return (
@@ -68,7 +82,7 @@ export default function PaymentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {transactions.map((tx) => (
+                {transactions.map((tx: Transaction) => (
                   <tr key={tx.id} className="text-zinc-300 hover:bg-white/[0.02] transition-colors">
                     <td className="px-6 py-4 text-sm font-mono text-zinc-500">{tx.id}</td>
                     <td className="px-6 py-4">
@@ -93,7 +107,7 @@ export default function PaymentsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 font-bold text-[#10b981] text-lg">
-                      {tx.amount}
+                      {typeof tx.amount === "number" ? formatCurrency(tx.amount) : tx.amount}
                     </td>
                     <td className="px-6 py-4 text-zinc-400 font-medium">
                       {tx.gateway || "Stripe"}
