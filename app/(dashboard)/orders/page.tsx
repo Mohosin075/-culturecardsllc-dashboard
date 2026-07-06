@@ -1,64 +1,42 @@
-import React from "react";
-import { Search, Filter, Eye, RefreshCcw, DollarSign } from "lucide-react";
+"use client";
 
-const orders = [
-  {
-    id: "ORD-1001",
-    buyer: { name: "John Doe", color: "bg-blue-500", initial: "J" },
-    seller: "SneakerKing",
-    item: "Nike Air Jordan 1 Retro High OG",
-    price: "$320",
-    status: "Shipped",
-    deliveryDate: "2026-04-26",
-  },
-  {
-    id: "ORD-1002",
-    buyer: { name: "Jane Smith", color: "bg-purple-500", initial: "J" },
-    seller: "WatchMaster",
-    item: "Rolex Submariner Date",
-    price: "$8,500",
-    status: "Pending",
-    deliveryDate: "2026-04-30",
-  },
-  {
-    id: "ORD-1003",
-    buyer: { name: "Mike Johnson", color: "bg-indigo-500", initial: "M" },
-    seller: "CardCollector",
-    item: "Pokemon Card Charizard 1st Edition",
-    price: "$450",
-    status: "Delivered",
-    deliveryDate: "2026-04-22",
-  },
-  {
-    id: "ORD-1004",
-    buyer: { name: "Sarah Wilson", color: "bg-pink-500", initial: "S" },
-    seller: "SneakerHub",
-    item: "Adidas Yeezy 350 Boost V2",
-    price: "$280",
-    status: "Shipped",
-    deliveryDate: "2026-04-27",
-  },
-  {
-    id: "ORD-1005",
-    buyer: { name: "Alex Brown", color: "bg-blue-600", initial: "A" },
-    seller: "TechDeals",
-    item: "MacBook Pro M3 Max 16\"",
-    price: "$3,200",
-    status: "Pending",
-    deliveryDate: "2026-04-29",
-  },
-  {
-    id: "ORD-1006",
-    buyer: { name: "Emma Davis", color: "bg-violet-600", initial: "E" },
-    seller: "LuxuryTime",
-    item: "Patek Philippe Nautilus",
-    price: "$45,000",
-    status: "Cancelled",
-    deliveryDate: "—",
-  },
-];
+import React, { useState, useEffect } from "react";
+import { Search, Filter, Eye, RefreshCcw, DollarSign, Loader2 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
+import { fetchOrders, refundOrder } from "@/app/store/slices/ordersSlice";
 
 export default function OrdersPage() {
+  const dispatch = useAppDispatch();
+  const { items: orders, loading } = useAppSelector((state) => state.orders);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    dispatch(fetchOrders());
+  }, [dispatch]);
+
+  const handleRefund = (id: string) => {
+    if (confirm(`Are you sure you want to refund order ${id}?`)) {
+      alert(`Refund initiated for order ${id}.`);
+      dispatch(refundOrder(id));
+    }
+  };
+
+  const filteredOrders = orders.filter(
+    (order) =>
+      order.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.buyer?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.seller?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.item?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="animate-spin text-[#155DFC]" size={40} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -72,7 +50,9 @@ export default function OrdersPage() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
           <input
             type="text"
-            placeholder="Search orders, buyers or items..."
+            placeholder="Search orders by ID, buyer, seller, or item..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-[#111111] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-zinc-300 focus:outline-none focus:border-[#155DFC] transition-colors"
           />
         </div>
@@ -99,15 +79,15 @@ export default function OrdersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {orders.map((order) => (
+              {filteredOrders.map((order) => (
                 <tr key={order.id} className="text-zinc-300 hover:bg-white/[0.02] transition-colors">
                   <td className="px-6 py-4 text-sm font-mono text-zinc-500">{order.id}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full ${order.buyer.color} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
-                        {order.buyer.initial}
+                      <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                        {order.buyer?.charAt(0) || "B"}
                       </div>
-                      <span className="font-medium truncate max-w-[120px]">{order.buyer.name}</span>
+                      <span className="font-medium truncate max-w-[120px]">{order.buyer}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -117,7 +97,7 @@ export default function OrdersPage() {
                     <span className="text-zinc-200 text-sm font-medium">{order.item}</span>
                   </td>
                   <td className="px-6 py-4 font-bold text-[#10b981] text-lg">
-                    {order.price}
+                    {order.totalPrice || order.price}
                   </td>
                   <td className="px-6 py-4">
                     <span
@@ -135,14 +115,18 @@ export default function OrdersPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <span className="text-zinc-500 text-sm">{order.deliveryDate}</span>
+                    <span className="text-zinc-500 text-sm">{order.deliveryDate || "—"}</span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3 text-zinc-500">
                       <button className="hover:text-white transition-colors" title="View Order">
                         <Eye size={18} />
                       </button>
-                      <button className="hover:text-blue-400 transition-colors" title="Refund/Return">
+                      <button
+                        onClick={() => handleRefund(order.id)}
+                        className="hover:text-blue-400 transition-colors"
+                        title="Refund/Return"
+                      >
                         <RefreshCcw size={18} />
                       </button>
                       <button className="hover:text-yellow-500 transition-colors" title="Payout">

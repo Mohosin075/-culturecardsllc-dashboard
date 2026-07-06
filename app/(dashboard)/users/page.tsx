@@ -1,76 +1,45 @@
-import React from "react";
-import { Search, Filter, Eye, UserMinus, ShieldCheck, Star } from "lucide-react";
+"use client";
 
-const users = [
-  {
-    id: "USR-001",
-    name: "John Doe",
-    username: "@johndoe",
-    email: "john@example.com",
-    role: "Buyer/Seller",
-    rating: 4.8,
-    transactions: 45,
-    status: "Active",
-    color: "bg-blue-500",
-  },
-  {
-    id: "USR-002",
-    name: "Jane Smith",
-    username: "@janesmith",
-    email: "jane@example.com",
-    role: "Seller",
-    rating: 4.9,
-    transactions: 128,
-    status: "Active",
-    color: "bg-purple-500",
-  },
-  {
-    id: "USR-003",
-    name: "Mike Johnson",
-    username: "@mikej",
-    email: "mike@example.com",
-    role: "Buyer",
-    rating: 4.5,
-    transactions: 23,
-    status: "Active",
-    color: "bg-indigo-500",
-  },
-  {
-    id: "USR-004",
-    name: "Sarah Wilson",
-    username: "@sarahw",
-    email: "sarah@example.com",
-    role: "Trader",
-    rating: 4.7,
-    transactions: 67,
-    status: "Suspended",
-    color: "bg-pink-500",
-  },
-  {
-    id: "USR-005",
-    name: "Alex Brown",
-    username: "@alexb",
-    email: "alex@example.com",
-    role: "Seller",
-    rating: 4.6,
-    transactions: 89,
-    status: "Active",
-    color: "bg-blue-600",
-  },
-  {
-    id: "USR-006",
-    name: "Emma Davis",
-    username: "@emmad",
-    email: "emma@example.com",
-    role: "Buyer/Seller",
-    rating: 4.9,
-    transactions: 156,
-    status: "Active",
-    color: "bg-violet-600",
-  },
-];
+import React, { useState, useEffect } from "react";
+import { Search, Filter, Eye, UserMinus, ShieldCheck, Star, Loader2 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
+import { fetchUsers, updateUserStatus, deleteUser } from "@/app/store/slices/usersSlice";
 
 export default function UsersPage() {
+  const dispatch = useAppDispatch();
+  const { items: users, loading } = useAppSelector((state) => state.users);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    dispatch(fetchUsers());
+  }, [dispatch]);
+
+  const handleToggleStatus = async (userId: string, currentStatus: string) => {
+    const nextStatus = currentStatus === "Active" ? "Suspended" : "Active";
+    dispatch(updateUserStatus({ userId, status: nextStatus }));
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (confirm("Are you sure you want to delete this user?")) {
+      dispatch(deleteUser(userId));
+    }
+  };
+
+  const filteredUsers = users.filter(
+    (user) =>
+      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="animate-spin text-[#155DFC]" size={40} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -85,6 +54,8 @@ export default function UsersPage() {
           <input
             type="text"
             placeholder="Search by name, username, or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-[#111111] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-zinc-300 focus:outline-none focus:border-[#155DFC] transition-colors"
           />
         </div>
@@ -112,13 +83,13 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <tr key={user.id} className="text-zinc-300 hover:bg-white/[0.02] transition-colors">
                   <td className="px-6 py-4 text-sm">{user.id}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full ${user.color} flex items-center justify-center text-white font-bold`}>
-                        {user.name.charAt(0)}
+                      <div className={`w-10 h-10 rounded-full ${user.color || 'bg-blue-500'} flex items-center justify-center text-white font-bold`}>
+                        {user.name ? user.name.charAt(0) : "U"}
                       </div>
                       <span className="font-medium text-lg">{user.name}</span>
                     </div>
@@ -150,13 +121,21 @@ export default function UsersPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3 text-zinc-500">
-                      <button className="hover:text-white transition-colors">
+                      <button className="hover:text-white transition-colors" title="View Profile">
                         <Eye size={18} />
                       </button>
-                      <button className="hover:text-red-500 transition-colors">
+                      <button
+                        onClick={() => handleToggleStatus(user.id, user.status)}
+                        className={`transition-colors ${user.status === "Active" ? "hover:text-red-500" : "hover:text-green-500"}`}
+                        title={user.status === "Active" ? "Suspend User" : "Activate User"}
+                      >
                         <UserMinus size={18} />
                       </button>
-                      <button className="hover:text-green-500 transition-colors">
+                      <button
+                        onClick={() => handleDeleteUser(user.id)}
+                        className="hover:text-red-600 transition-colors"
+                        title="Delete User"
+                      >
                         <ShieldCheck size={18} />
                       </button>
                     </div>

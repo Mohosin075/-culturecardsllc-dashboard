@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { 
   LineChart, 
   Line, 
@@ -21,79 +21,73 @@ import {
   Radio, 
   Repeat, 
   DollarSign, 
-  AlertTriangle 
+  AlertTriangle,
+  Loader2
 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
+import { fetchOverview } from "@/app/store/slices/overviewSlice";
 
-const stats = [
-  { name: "Total Users", value: "12,540", icon: Users, color: "bg-blue-600" },
-  { name: "Active Sellers", value: "3,210", icon: ShoppingBag, color: "bg-green-600" },
-  { name: "Live Streams Now", value: "28", icon: Radio, color: "bg-red-600" },
-  { name: "Total Trades Today", value: "184", icon: Repeat, color: "bg-purple-600" },
-  { name: "Total Revenue", value: "$24,580", icon: DollarSign, color: "bg-yellow-600" },
-  { name: "Pending Disputes", value: "12", icon: AlertTriangle, color: "bg-orange-600" },
-];
+const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
+  "total users": Users,
+  "active sellers": ShoppingBag,
+  "live streams now": Radio,
+  "total trades today": Repeat,
+  "total revenue": DollarSign,
+  "pending disputes": AlertTriangle,
+};
 
-const revenueData = [
-  { day: "Mon", revenue: 3200 },
-  { day: "Tue", revenue: 4100 },
-  { day: "Wed", revenue: 3800 },
-  { day: "Thu", revenue: 4500 },
-  { day: "Fri", revenue: 3900 },
-  { day: "Sat", revenue: 5300 },
-  { day: "Sun", revenue: 4800 },
-];
-
-const growthData = [
-  { month: "Jan", users: 8500 },
-  { month: "Feb", users: 9200 },
-  { month: "Mar", users: 10100 },
-  { month: "Apr", users: 12540 },
-];
-
-const ratioData = [
-  { name: "Trades", value: 45 },
-  { name: "Purchases", value: 55 },
-];
+const getIconByName = (name: string) => {
+  return iconMap[name.toLowerCase()] || Users;
+};
 
 const COLORS = ["#3b82f6", "#10b981"];
 
-const recentOrders = [
-  { id: "ORD-1234", item: "Nike Air Jordan 1", user: "John Doe", price: "$320", status: "Shipped", statusColor: "text-blue-500 bg-blue-500/10 border-blue-500/20" },
-  { id: "ORD-1235", item: "Rolex Submariner", user: "Jane Smith", price: "$8,500", status: "Pending", statusColor: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20" },
-  { id: "ORD-1236", item: "Pokemon Card Charizard", user: "Mike Johnson", price: "$450", status: "Delivered", statusColor: "text-green-500 bg-green-500/10 border-green-500/20" },
-  { id: "ORD-1237", item: "Adidas Yeezy 350", user: "Sarah Wilson", price: "$280", status: "Shipped", statusColor: "text-blue-500 bg-blue-500/10 border-blue-500/20" },
-];
-
-const recentTrades = [
-  { id: "TRD-5678", items: "Sneakers ↔ Watch", users: "Alex Brown ↔ Chris Lee", status: "Pending", statusColor: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20" },
-  { id: "TRD-5679", items: "Cards ↔ Sneakers", users: "Emma Davis ↔ Ryan Clark", status: "Accepted", statusColor: "text-blue-500 bg-blue-500/10 border-blue-500/20" },
-  { id: "TRD-5680", items: "Watch ↔ Tech", users: "Tom Harris ↔ Lisa White", status: "Completed", statusColor: "text-green-500 bg-green-500/10 border-green-500/20" },
-];
-
-const flaggedActivities = [
-  { user: "suspect_user_99", reason: "Multiple failed payment attempts", level: "High", color: "text-red-500 bg-red-500/10 border-red-500/20" },
-  { user: "trader_xyz", reason: "Unusual trade pattern detected", level: "Medium", color: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20" },
-  { user: "seller_abc", reason: "Reported by 3 buyers", level: "High", color: "text-red-500 bg-red-500/10 border-red-500/20" },
-];
-
 export default function OverviewPage() {
+  const dispatch = useAppDispatch();
+  const { data, loading } = useAppSelector((state) => state.overview);
+
+  useEffect(() => {
+    dispatch(fetchOverview());
+  }, [dispatch]);
+
+  if (loading || !data) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="animate-spin text-[#155DFC]" size={40} />
+      </div>
+    );
+  }
+
+  const {
+    stats = [],
+    revenueData = [],
+    growthData = [],
+    ratioData = [],
+    recentOrders = [],
+    recentTrades = [],
+    flaggedActivities = [],
+  } = data || {};
+
   return (
     <div className="space-y-8 pb-12">
       <h1 className="text-3xl font-semibold text-white">Overview</h1>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {stats.map((stat) => (
-          <div key={stat.name} className="bg-[#111111] border border-white/5 p-6 rounded-2xl space-y-4">
-            <div className={`w-10 h-10 ${stat.color} rounded-lg flex items-center justify-center text-white`}>
-              <stat.icon size={20} />
+        {stats.map((stat: any) => {
+          const Icon = getIconByName(stat.name);
+          return (
+            <div key={stat.name} className="bg-[#111111] border border-white/5 p-6 rounded-2xl space-y-4">
+              <div className={`w-10 h-10 ${stat.color || 'bg-blue-600'} rounded-lg flex items-center justify-center text-white`}>
+                <Icon size={20} />
+              </div>
+              <div>
+                <p className="text-zinc-500 text-sm font-medium">{stat.name}</p>
+                <h3 className="text-2xl font-bold text-white mt-1">{stat.value}</h3>
+              </div>
             </div>
-            <div>
-              <p className="text-zinc-500 text-sm font-medium">{stat.name}</p>
-              <h3 className="text-2xl font-bold text-white mt-1">{stat.value}</h3>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Charts Middle Section */}
@@ -151,7 +145,7 @@ export default function OverviewPage() {
                   paddingAngle={5}
                   dataKey="value"
                 >
-                  {ratioData.map((entry, index) => (
+                  {ratioData.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
                   ))}
                 </Pie>
@@ -171,7 +165,7 @@ export default function OverviewPage() {
         <div className="bg-[#111111] border border-white/5 p-6 rounded-2xl space-y-4">
           <h2 className="text-lg font-semibold text-zinc-100">Recent Orders</h2>
           <div className="space-y-3">
-            {recentOrders.map((order) => (
+            {recentOrders.map((order: any) => (
               <div key={order.id} className="p-3 bg-black/40 border border-white/5 rounded-xl space-y-2">
                 <div className="flex justify-between items-start">
                   <span className="text-[10px] font-mono text-zinc-500">{order.id}</span>
@@ -193,7 +187,7 @@ export default function OverviewPage() {
         <div className="bg-[#111111] border border-white/5 p-6 rounded-2xl space-y-4">
           <h2 className="text-lg font-semibold text-zinc-100">Recent Trades</h2>
           <div className="space-y-3">
-            {recentTrades.map((trade) => (
+            {recentTrades.map((trade: any) => (
               <div key={trade.id} className="p-3 bg-black/40 border border-white/5 rounded-xl space-y-2">
                 <div className="flex justify-between items-start">
                   <span className="text-[10px] font-mono text-zinc-500">{trade.id}</span>
@@ -212,7 +206,7 @@ export default function OverviewPage() {
         <div className="bg-[#111111] border border-white/5 p-6 rounded-2xl space-y-4">
           <h2 className="text-lg font-semibold text-zinc-100">Flagged Activities</h2>
           <div className="space-y-3">
-            {flaggedActivities.map((activity, i) => (
+            {flaggedActivities.map((activity: any, i: number) => (
               <div key={i} className="p-3 bg-black/40 border border-white/5 rounded-xl space-y-2">
                 <div className="flex justify-between items-start">
                   <span className="text-sm font-semibold text-zinc-200">@{activity.user}</span>

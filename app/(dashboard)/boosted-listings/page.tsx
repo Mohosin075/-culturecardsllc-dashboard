@@ -1,54 +1,39 @@
-import React from "react";
-import { Star, CheckCircle2 } from "lucide-react";
+"use client";
 
-const boostedListings = [
-  {
-    id: "BOOST-001",
-    name: "Nike Air Jordan 1 Retro High OG",
-    seller: "SneakerKing",
-    level: "Premium",
-    duration: "7 days",
-    period: "2026-04-20 to 2026-04-27",
-    impressions: "12,450",
-    fee: "$25.00",
-    status: "Active",
-  },
-  {
-    id: "BOOST-002",
-    name: "Adidas Yeezy 350 Boost V2",
-    seller: "SneakerHub",
-    level: "Premium",
-    duration: "7 days",
-    period: "2026-04-21 to 2026-04-28",
-    impressions: "8,920",
-    fee: "$25.00",
-    status: "Active",
-  },
-  {
-    id: "BOOST-003",
-    name: "Rolex Datejust 41",
-    seller: "WatchMaster",
-    level: "Standard",
-    duration: "3 days",
-    period: "2026-04-22 to 2026-04-25",
-    impressions: "3,450",
-    fee: "$10.00",
-    status: "Active",
-  },
-  {
-    id: "BOOST-004",
-    name: "Pokemon Card Charizard VMAX",
-    seller: "CardCollector",
-    level: "Premium",
-    duration: "7 days",
-    period: "2026-04-18 to 2026-04-25",
-    impressions: "15,670",
-    fee: "$25.00",
-    status: "Expiring Soon",
-  },
-];
+import React, { useEffect } from "react";
+import { Star, CheckCircle2, Loader2 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
+import { fetchBoostedListings } from "@/app/store/slices/boostedListingsSlice";
 
 export default function BoostedListingsPage() {
+  const dispatch = useAppDispatch();
+  const { items, loading } = useAppSelector((state) => state.boostedListings);
+
+  useEffect(() => {
+    dispatch(fetchBoostedListings());
+  }, [dispatch]);
+
+  // Adapt listing data structure to what page expects:
+  const boostedListings = items.map((item: any, i: number) => ({
+    id: item.id || `BOOST-00${i+1}`,
+    name: item.item || item.name,
+    seller: item.seller,
+    level: item.level || (i % 2 === 0 ? "Premium" : "Standard"),
+    duration: item.duration || "7 days",
+    period: item.period || "2026-04-20 to 2026-04-27",
+    impressions: item.impressions || "12,450",
+    fee: item.fee || "$25.00",
+    status: item.status || "Active",
+  }));
+
+  if (loading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="animate-spin text-[#155DFC]" size={40} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -102,7 +87,7 @@ export default function BoostedListingsPage() {
                     {item.duration}
                   </td>
                   <td className="px-6 py-4 text-xs text-zinc-500 leading-relaxed">
-                    {item.period.split(' to ').map((date, i) => (
+                    {item.period.split(' to ').map((date: string, i: number) => (
                       <div key={i}>{date}</div>
                     ))}
                   </td>

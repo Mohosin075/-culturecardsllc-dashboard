@@ -1,61 +1,47 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Eye, 
   MessageSquare, 
   Check, 
   X, 
-  AlertCircle, 
   FileImage, 
   FileText,
-  Clock
+  Clock,
+  Loader2
 } from "lucide-react";
-
-const disputes = [
-  {
-    id: "DIS-001",
-    status: "Open",
-    priority: "Medium",
-    date: "2026-04-22",
-    users: [
-      { name: "John Doe", color: "bg-blue-500", initial: "J" },
-      { name: "SneakerKing", color: "bg-indigo-500", initial: "S" },
-    ],
-    targetId: "ORD-1234",
-    issueType: "Item not as described",
-    description: "Received sneakers have visible defects not shown in photos",
-  },
-  {
-    id: "DIS-002",
-    status: "Reviewing",
-    priority: "High",
-    date: "2026-04-21",
-    users: [
-      { name: "Emma Davis", color: "bg-purple-500", initial: "E" },
-      { name: "CardCollector", color: "bg-blue-600", initial: "C" },
-    ],
-    targetId: "TRD-5678",
-    issueType: "Wrong item received",
-    description: "Trade partner sent different card than agreed upon",
-  },
-  {
-    id: "DIS-003",
-    status: "Open",
-    priority: "High",
-    date: "2026-04-23",
-    users: [
-      { name: "Mike Johnson", color: "bg-indigo-600", initial: "M" },
-      { name: "WatchMaster", color: "bg-blue-700", initial: "W" },
-    ],
-    targetId: "ORD-1567",
-    issueType: "Payment issue",
-    description: "Payment processed but order not shipped after 5 days",
-  },
-];
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
+import { fetchDisputes, resolveDispute, rejectDispute } from "@/app/store/slices/disputesSlice";
 
 export default function DisputesPage() {
-  const [selectedDispute, setSelectedDispute] = useState<typeof disputes[0] | null>(null);
+  const dispatch = useAppDispatch();
+  const { items: disputes, loading } = useAppSelector((state) => state.disputes);
+  const [selectedDispute, setSelectedDispute] = useState<any | null>(null);
+
+  useEffect(() => {
+    dispatch(fetchDisputes());
+  }, [dispatch]);
+
+  const handleResolve = async (disputeId: string) => {
+    if (confirm(`Are you sure you want to mark dispute ${disputeId} as resolved?`)) {
+      dispatch(resolveDispute(disputeId));
+    }
+  };
+
+  const handleReject = async (disputeId: string) => {
+    if (confirm(`Are you sure you want to reject dispute ${disputeId}?`)) {
+      dispatch(rejectDispute(disputeId));
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="animate-spin text-[#155DFC]" size={40} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 pb-12">
@@ -69,7 +55,9 @@ export default function DisputesPage() {
               <div className="flex items-center gap-3">
                 <h2 className="text-xl font-bold text-white">{dispute.id}</h2>
                 <span className={`px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                  dispute.status === 'Open' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                  dispute.status === 'Open' || dispute.status === 'Reviewing'
+                    ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+                    : 'bg-green-500/10 text-green-500 border-green-500/20'
                 }`}>
                   {dispute.status}
                 </span>
@@ -90,10 +78,10 @@ export default function DisputesPage() {
               <div className="p-4 bg-black/40 border border-white/5 rounded-xl space-y-3">
                 <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Users Involved:</p>
                 <div className="flex gap-4">
-                  {dispute.users.map((user, i) => (
+                  {dispute.users?.map((user: any, i: number) => (
                     <div key={i} className="flex items-center gap-2">
-                      <div className={`w-6 h-6 rounded-full ${user.color} flex items-center justify-center text-[10px] font-bold text-white`}>
-                        {user.initial}
+                      <div className={`w-6 h-6 rounded-full ${user.color || 'bg-blue-500'} flex items-center justify-center text-[10px] font-bold text-white`}>
+                        {user.initial || user.name?.charAt(0)}
                       </div>
                       <span className="text-sm font-medium text-zinc-300">{user.name}</span>
                     </div>
@@ -134,11 +122,17 @@ export default function DisputesPage() {
                 </button>
               </div>
               <div className="flex gap-3">
-                <button className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-lg shadow-green-600/10">
+                <button
+                  onClick={() => handleResolve(dispute.id)}
+                  className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-lg shadow-green-600/10"
+                >
                   <Check size={18} />
                   Resolve
                 </button>
-                <button className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-lg shadow-red-600/10">
+                <button
+                  onClick={() => handleReject(dispute.id)}
+                  className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-lg shadow-red-600/10"
+                >
                   <X size={18} />
                   Reject
                 </button>

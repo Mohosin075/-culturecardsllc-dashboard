@@ -21,6 +21,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { api, useApiStatus } from "@/app/lib/api";
 
 const menuItems = [
   { name: "Overview", icon: LayoutDashboard, href: "/overview" },
@@ -42,9 +43,10 @@ const menuItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const isLive = useApiStatus();
 
-  const handleLogout = () => {
-    // Perform any logout logic here
+  const handleLogout = async () => {
+    await api.auth.logout();
     router.push("/login");
   };
 
@@ -79,7 +81,17 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-white/5">
+      <div className="p-4 border-t border-white/5 space-y-4">
+        <div className="flex items-center justify-between px-3 py-2 bg-black/40 border border-white/5 rounded-xl">
+          <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">API Status</span>
+          <div className="flex items-center gap-1.5">
+            <div className={`w-2 h-2 rounded-full ${isLive ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`} />
+            <span className={`text-[10px] font-bold ${isLive ? 'text-green-500' : 'text-yellow-500'}`}>
+              {isLive ? 'LIVE' : 'DEMO'}
+            </span>
+          </div>
+        </div>
+
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-500/10 transition-all duration-200 group"

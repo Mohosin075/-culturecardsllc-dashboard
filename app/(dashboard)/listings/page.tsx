@@ -1,70 +1,44 @@
-import React from "react";
-import { Search, Filter, Eye, Trash2, Star, TrendingUp } from "lucide-react";
+"use client";
 
-const listings = [
-  {
-    id: "LST-001",
-    seller: "John Doe",
-    item: "Nike Air Jordan 1 Retro High OG",
-    price: "$320",
-    category: "Sneakers",
-    views: "1,234",
-    status: "Live",
-    boosted: true,
-  },
-  {
-    id: "LST-002",
-    seller: "Jane Smith",
-    item: "Rolex Submariner Date",
-    price: "$8,500",
-    category: "Watches",
-    views: "892",
-    status: "Live",
-    boosted: false,
-  },
-  {
-    id: "LST-003",
-    seller: "Mike Johnson",
-    item: "Pokemon Card Charizard 1st Edition",
-    price: "$450",
-    category: "Cards",
-    views: "567",
-    status: "Sold",
-    boosted: false,
-  },
-  {
-    id: "LST-004",
-    seller: "Sarah Wilson",
-    item: "Adidas Yeezy 350 Boost V2",
-    price: "$280",
-    category: "Sneakers",
-    views: "2,341",
-    status: "Live",
-    boosted: true,
-  },
-  {
-    id: "LST-005",
-    seller: "Alex Brown",
-    item: "MacBook Pro M3 Max",
-    price: "$3,200",
-    category: "Tech",
-    views: "678",
-    status: "Live",
-    boosted: false,
-  },
-  {
-    id: "LST-006",
-    seller: "Emma Davis",
-    item: "Patek Philippe Nautilus",
-    price: "$45,000",
-    category: "Watches",
-    views: "234",
-    status: "Removed",
-    boosted: false,
-  },
-];
+import React, { useState, useEffect } from "react";
+import { Search, Filter, Eye, Trash2, Star, Loader2 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
+import { fetchListings, deleteListing } from "@/app/store/slices/listingsSlice";
 
 export default function ListingsPage() {
+  const dispatch = useAppDispatch();
+  const { items: listings, loading } = useAppSelector((state) => state.listings);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    dispatch(fetchListings());
+  }, [dispatch]);
+
+  const handleDeleteListing = async (productId: string) => {
+    if (confirm("Are you sure you want to delete this listing?")) {
+      dispatch(deleteListing(productId));
+    }
+  };
+
+  const handleToggleBoost = (productId: string) => {
+    alert("Boost status updated for listing: " + productId);
+  };
+
+  const filteredListings = listings.filter(
+    (item) =>
+      item.item?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.seller?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.category?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="animate-spin text-[#155DFC]" size={40} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -78,7 +52,9 @@ export default function ListingsPage() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
           <input
             type="text"
-            placeholder="Search listings..."
+            placeholder="Search listings by item, seller, or category..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-[#111111] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-zinc-300 focus:outline-none focus:border-[#155DFC] transition-colors"
           />
         </div>
@@ -106,7 +82,7 @@ export default function ListingsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {listings.map((item) => (
+              {filteredListings.map((item) => (
                 <tr key={item.id} className="text-zinc-300 hover:bg-white/[0.02] transition-colors group">
                   <td className="px-6 py-4 text-sm font-mono text-zinc-500">{item.id}</td>
                   <td className="px-6 py-4">
@@ -148,13 +124,21 @@ export default function ListingsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3 text-zinc-500">
-                      <button className="hover:text-white transition-colors">
+                      <button className="hover:text-white transition-colors" title="View Listing Details">
                         <Eye size={18} />
                       </button>
-                      <button className="hover:text-red-500 transition-colors">
+                      <button
+                        onClick={() => handleDeleteListing(item.id)}
+                        className="hover:text-red-500 transition-colors"
+                        title="Delete Listing"
+                      >
                         <Trash2 size={18} />
                       </button>
-                      <button className={`${item.boosted ? 'text-yellow-500' : 'hover:text-white'} transition-colors`}>
+                      <button
+                        onClick={() => handleToggleBoost(item.id)}
+                        className={`${item.boosted ? 'text-yellow-500' : 'hover:text-white'} transition-colors`}
+                        title="Toggle Boost"
+                      >
                         <Star size={18} className={item.boosted ? "fill-yellow-500" : ""} />
                       </button>
                     </div>

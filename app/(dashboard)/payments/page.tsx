@@ -1,5 +1,9 @@
-import React from "react";
-import { DollarSign, TrendingUp, Clock, CheckCircle } from "lucide-react";
+"use client";
+
+import React, { useEffect } from "react";
+import { DollarSign, TrendingUp, Clock, CheckCircle, Loader2 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
+import { fetchPayments } from "@/app/store/slices/paymentsSlice";
 
 const stats = [
   { name: "Total Revenue", value: "$124,580", icon: DollarSign, color: "bg-green-500" },
@@ -8,64 +12,22 @@ const stats = [
   { name: "Completed Payouts", value: "$98,200", icon: CheckCircle, color: "bg-purple-500" },
 ];
 
-const transactions = [
-  {
-    id: "TXN-7001",
-    user: { name: "SneakerKing", color: "bg-indigo-500", initial: "S" },
-    type: "Purchase",
-    amount: "$320.00",
-    commission: "$16.00",
-    date: "2026-04-24",
-    status: "Completed",
-  },
-  {
-    id: "TXN-7002",
-    user: { name: "WatchMaster", color: "bg-blue-500", initial: "W" },
-    type: "Purchase",
-    amount: "$8,500.00",
-    commission: "$425.00",
-    date: "2026-04-24",
-    status: "Completed",
-  },
-  {
-    id: "TXN-7003",
-    user: { name: "CardCollector", color: "bg-purple-600", initial: "C" },
-    type: "Trade",
-    amount: "$450.00",
-    commission: "$11.25",
-    date: "2026-04-23",
-    status: "Completed",
-  },
-  {
-    id: "TXN-7004",
-    user: { name: "SneakerHub", color: "bg-blue-600", initial: "S" },
-    type: "Boost",
-    amount: "$25.00",
-    commission: "$25.00",
-    date: "2026-04-24",
-    status: "Completed",
-  },
-  {
-    id: "TXN-7005",
-    user: { name: "TechDeals", color: "bg-blue-600", initial: "T" },
-    type: "Purchase",
-    amount: "$3,200.00",
-    commission: "$160.00",
-    date: "2026-04-23",
-    status: "Pending",
-  },
-  {
-    id: "TXN-7006",
-    user: { name: "LuxuryTime", color: "bg-blue-700", initial: "L" },
-    type: "Purchase",
-    amount: "$45,000.00",
-    commission: "$2,250.00",
-    date: "2026-04-22",
-    status: "Completed",
-  },
-];
-
 export default function PaymentsPage() {
+  const dispatch = useAppDispatch();
+  const { items: transactions, loading } = useAppSelector((state) => state.payments);
+
+  useEffect(() => {
+    dispatch(fetchPayments());
+  }, [dispatch]);
+
+  if (loading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="animate-spin text-[#155DFC]" size={40} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -100,7 +62,7 @@ export default function PaymentsPage() {
                   <th className="px-6 py-4 font-medium">User</th>
                   <th className="px-6 py-4 font-medium">Type</th>
                   <th className="px-6 py-4 font-medium">Amount</th>
-                  <th className="px-6 py-4 font-medium">Commission</th>
+                  <th className="px-6 py-4 font-medium">Gateway</th>
                   <th className="px-6 py-4 font-medium">Date</th>
                   <th className="px-6 py-4 font-medium">Status</th>
                 </tr>
@@ -111,16 +73,16 @@ export default function PaymentsPage() {
                     <td className="px-6 py-4 text-sm font-mono text-zinc-500">{tx.id}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full ${tx.user.color} flex items-center justify-center text-white text-xs font-bold`}>
-                          {tx.user.initial}
+                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                          {tx.user?.charAt(0) || "U"}
                         </div>
-                        <span className="font-medium">{tx.user.name}</span>
+                        <span className="font-medium">{tx.user}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <span 
                         className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                          tx.type === 'Purchase' 
+                          tx.type === 'Purchase' || tx.type === 'Escrow Charge'
                             ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' 
                             : tx.type === 'Trade'
                             ? 'bg-purple-500/10 text-purple-500 border-purple-500/20'
@@ -134,7 +96,7 @@ export default function PaymentsPage() {
                       {tx.amount}
                     </td>
                     <td className="px-6 py-4 text-zinc-400 font-medium">
-                      {tx.commission}
+                      {tx.gateway || "Stripe"}
                     </td>
                     <td className="px-6 py-4 text-zinc-500 text-sm">
                       {tx.date}

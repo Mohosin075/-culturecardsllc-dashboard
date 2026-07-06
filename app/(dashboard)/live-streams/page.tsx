@@ -1,61 +1,34 @@
-import React from "react";
-import { Radio, Users, Clock, Flag, Star, Calendar, Eye } from "lucide-react";
+"use client";
 
-const liveStreams = [
-  {
-    id: "STR-001",
-    title: "Rare Sneakers Auction - Jordan Collection",
-    seller: "SneakerKing",
-    category: "Sneakers",
-    viewers: 234,
-    duration: "45m",
-    thumbnail: "bg-gradient-to-br from-indigo-900 to-blue-900",
-  },
-  {
-    id: "STR-002",
-    title: "Vintage Watch Showcase",
-    seller: "WatchMaster",
-    category: "Watches",
-    viewers: 89,
-    duration: "1h 20m",
-    thumbnail: "bg-gradient-to-br from-purple-900 to-indigo-900",
-  },
-  {
-    id: "STR-003",
-    title: "Pokemon Cards Opening - Booster Box",
-    seller: "CardCollector99",
-    category: "Cards",
-    viewers: 567,
-    duration: "32m",
-    thumbnail: "bg-gradient-to-br from-blue-900 to-purple-900",
-  },
-];
-
-const scheduledStreams = [
-  {
-    id: "STR-004",
-    title: "Limited Edition Yeezy Drop",
-    seller: "SneakerHub",
-    category: "Sneakers",
-    time: "2026-04-24 18:00",
-  },
-  {
-    id: "STR-005",
-    title: "Luxury Watch Collection Tour",
-    seller: "TimeKeeper",
-    category: "Watches",
-    time: "2026-04-24 20:00",
-  },
-  {
-    id: "STR-006",
-    title: "Trading Card Grading Session",
-    seller: "CardExpert",
-    category: "Cards",
-    time: "2026-04-25 15:00",
-  },
-];
+import React, { useEffect } from "react";
+import { Radio, Users, Clock, Flag, Star, Calendar, Loader2 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
+import { fetchLiveStreams, cancelScheduledStream } from "@/app/store/slices/liveStreamsSlice";
 
 export default function LiveStreamsPage() {
+  const dispatch = useAppDispatch();
+  const { live: liveStreams, scheduled: scheduledStreams, loading } = useAppSelector(
+    (state) => state.liveStreams
+  );
+
+  useEffect(() => {
+    dispatch(fetchLiveStreams());
+  }, [dispatch]);
+
+  const handleCancelStream = (id: string) => {
+    if (confirm("Are you sure you want to cancel this scheduled stream?")) {
+      dispatch(cancelScheduledStream(id));
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="animate-spin text-[#155DFC]" size={40} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-10 pb-12">
       <div>
@@ -71,7 +44,7 @@ export default function LiveStreamsPage() {
         {liveStreams.map((stream) => (
           <div key={stream.id} className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden group">
             {/* Thumbnail Placeholder */}
-            <div className={`aspect-video w-full relative ${stream.thumbnail} flex items-center justify-center`}>
+            <div className={`aspect-video w-full relative ${stream.thumbnail || 'bg-gradient-to-br from-indigo-900 to-blue-900'} flex items-center justify-center`}>
               <Radio size={48} className="text-white/20 group-hover:scale-110 transition-transform duration-500" />
               <div className="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 uppercase">
                 <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
@@ -164,7 +137,10 @@ export default function LiveStreamsPage() {
                         <button className="bg-[#155DFC]/10 hover:bg-[#155DFC] text-[#155DFC] hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all border border-[#155DFC]/20">
                           View Details
                         </button>
-                        <button className="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all border border-red-500/20">
+                        <button
+                          onClick={() => handleCancelStream(stream.id)}
+                          className="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all border border-red-500/20"
+                        >
                           Cancel
                         </button>
                       </div>

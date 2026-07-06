@@ -1,46 +1,40 @@
-import React from "react";
-import { Check, X, MessageSquare, FileText } from "lucide-react";
+"use client";
 
-const requests = [
-  {
-    id: "VER-001",
-    name: "John Smith",
-    email: "john@example.com",
-    category: "Sneakers",
-    submitted: "2026-04-20",
-    status: "Pending",
-    documents: ["ID Card", "Business License"],
-  },
-  {
-    id: "VER-002",
-    name: "Emily Chen",
-    email: "emily@example.com",
-    category: "Cards",
-    submitted: "2026-04-21",
-    status: "Pending",
-    documents: ["ID Card", "Proof of Address"],
-  },
-  {
-    id: "VER-003",
-    name: "David Martinez",
-    email: "david@example.com",
-    category: "Watches",
-    submitted: "2026-04-22",
-    status: "Pending",
-    documents: ["ID Card", "Business License", "Tax Certificate"],
-  },
-  {
-    id: "VER-004",
-    name: "Lisa Anderson",
-    email: "lisa@example.com",
-    category: "Sneakers",
-    submitted: "2026-04-23",
-    status: "Pending",
-    documents: ["ID Card", "Proof of Address"],
-  },
-];
+import React, { useEffect } from "react";
+import { Check, X, MessageSquare, FileText, Loader2 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
+import {
+   fetchSellerVerifications,
+   approveVerification,
+   rejectVerification,
+} from "@/app/store/slices/sellerVerificationSlice";
 
 export default function SellerVerificationPage() {
+  const dispatch = useAppDispatch();
+  const { items: requests, loading } = useAppSelector((state) => state.sellerVerification);
+
+  useEffect(() => {
+    dispatch(fetchSellerVerifications());
+  }, [dispatch]);
+
+  const handleApprove = async (id: string) => {
+    alert(`Verification request ${id} approved successfully.`);
+    dispatch(approveVerification(id));
+  };
+
+  const handleReject = async (id: string) => {
+    alert(`Verification request ${id} rejected.`);
+    dispatch(rejectVerification(id));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="animate-spin text-[#155DFC]" size={40} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 pb-12">
       <h1 className="text-3xl font-semibold text-white">Seller Verification Requests</h1>
@@ -81,7 +75,7 @@ export default function SellerVerificationPage() {
             <div className="space-y-3 flex-1">
               <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Submitted Documents:</p>
               <div className="space-y-2">
-                {request.documents.map((doc, i) => (
+                {request.documents?.map((doc: string, i: number) => (
                   <div key={i} className="flex items-center gap-3 p-3 bg-black/40 border border-white/5 rounded-xl text-zinc-300 hover:border-white/10 transition-colors cursor-pointer group">
                     <FileText size={16} className="text-blue-500" />
                     <span className="text-sm font-medium">{doc}</span>
@@ -92,11 +86,17 @@ export default function SellerVerificationPage() {
 
             {/* Actions */}
             <div className="flex gap-3 pt-4 border-t border-white/5">
-              <button className="flex-1 bg-green-600 hover:bg-green-500 text-white py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-green-600/10">
+              <button
+                onClick={() => handleApprove(request.id)}
+                className="flex-1 bg-green-600 hover:bg-green-500 text-white py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-green-600/10"
+              >
                 <Check size={18} />
                 Approve
               </button>
-              <button className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-red-600/10">
+              <button
+                onClick={() => handleReject(request.id)}
+                className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-red-600/10"
+              >
                 <X size={18} />
                 Reject
               </button>

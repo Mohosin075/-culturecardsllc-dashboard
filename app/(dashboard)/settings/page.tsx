@@ -1,9 +1,21 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 
-import React, { useState } from "react";
-import { Save, Shield, Bell, CreditCard, Percent } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Save, Shield, Bell, CreditCard, Percent, Loader2 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/app/store/store";
+import { fetchSettings, updateSettings } from "@/app/store/slices/settingsSlice";
 
 export default function SettingsPage() {
+  const dispatch = useAppDispatch();
+  const { data, loading } = useAppSelector((state) => state.settings);
+
+  const [purchaseCommission, setPurchaseCommission] = useState("5");
+  const [tradeCommission, setTradeCommission] = useState("2.5");
+  const [paymentProcessor, setPaymentProcessor] = useState("Stripe");
+  const [apiKey, setApiKey] = useState("sk_live_••••••••••••••••••••");
+  const [testMode, setTestMode] = useState(false);
+  const [sessionTimeout, setSessionTimeout] = useState("30 minutes");
   const [toggles, setToggles] = useState({
     newOrder: true,
     dispute: true,
@@ -12,9 +24,59 @@ export default function SettingsPage() {
     ipWhitelist: false,
   });
 
+  useEffect(() => {
+    dispatch(fetchSettings());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (data) {
+      setPurchaseCommission(String(data.commissionSettings?.purchaseCommission ?? "5"));
+      setTradeCommission(String(data.commissionSettings?.tradeCommission ?? "2.5"));
+      setPaymentProcessor(data.paymentGateway?.processor ?? "Stripe");
+      setApiKey("sk_live_••••••••••••••••••••");
+      setTestMode(!!data.paymentGateway?.testMode);
+      setSessionTimeout(data.securitySettings?.sessionTimeout ?? "30 minutes");
+      setToggles({
+        newOrder: data.notificationSettings?.newOrderNotifications ?? true,
+        dispute: data.notificationSettings?.disputeAlerts ?? true,
+        system: data.notificationSettings?.systemAlerts ?? true,
+        twoFactor: data.securitySettings?.twoFactor ?? true,
+        ipWhitelist: !!data.securitySettings?.ipWhitelist,
+      });
+    }
+  }, [data]);
+
   const toggle = (key: keyof typeof toggles) => {
-    setToggles(prev => ({ ...prev, [key]: !prev[key] }));
+    setToggles((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  const handleSave = async () => {
+    try {
+      dispatch(
+        updateSettings({
+          commissionPurchase: parseFloat(purchaseCommission),
+          commissionTrade: parseFloat(tradeCommission),
+          gatewayName: paymentProcessor,
+          gatewayKey: apiKey,
+          testMode,
+          toggles,
+          sessionTimeout,
+        })
+      );
+      alert("Settings saved successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save settings.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="animate-spin text-[#155DFC]" size={40} />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-20">
@@ -35,7 +97,8 @@ export default function SettingsPage() {
               <label className="text-sm font-medium text-zinc-400">Purchase Commission (%)</label>
               <input
                 type="number"
-                defaultValue={5}
+                value={purchaseCommission}
+                onChange={(e) => setPurchaseCommission(e.target.value)}
                 className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-[#155DFC] transition-colors"
               />
               <p className="text-xs text-zinc-600">Standard commission rate for purchases</p>
@@ -44,7 +107,8 @@ export default function SettingsPage() {
               <label className="text-sm font-medium text-zinc-400">Trade Commission (%)</label>
               <input
                 type="number"
-                defaultValue={2.5}
+                value={tradeCommission}
+                onChange={(e) => setTradeCommission(e.target.value)}
                 className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-[#155DFC] transition-colors"
               />
               <p className="text-xs text-zinc-600">Commission rate for trades</p>
@@ -63,7 +127,8 @@ export default function SettingsPage() {
               <label className="text-sm font-medium text-zinc-400">Primary Payment Processor</label>
               <input
                 type="text"
-                defaultValue="Stripe"
+                value={paymentProcessor}
+                onChange={(e) => setPaymentProcessor(e.target.value)}
                 className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-[#155DFC] transition-colors"
               />
             </div>
@@ -71,7 +136,8 @@ export default function SettingsPage() {
               <label className="text-sm font-medium text-zinc-400">API Key</label>
               <input
                 type="password"
-                defaultValue="sk_live_••••••••••••••••••••"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
                 className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-[#155DFC] transition-colors"
               />
             </div>
@@ -79,6 +145,8 @@ export default function SettingsPage() {
               <input
                 type="checkbox"
                 id="test-mode"
+                checked={testMode}
+                onChange={(e) => setTestMode(e.target.checked)}
                 className="w-4 h-4 rounded border-white/10 bg-black text-[#155DFC] focus:ring-[#155DFC] focus:ring-offset-black"
               />
               <label htmlFor="test-mode" className="text-sm font-medium text-zinc-400">Enable Test Mode</label>
@@ -143,7 +211,11 @@ export default function SettingsPage() {
                 <h4 className="text-sm font-semibold text-zinc-100">Session Timeout</h4>
                 <p className="text-xs text-zinc-500">Auto logout after inactivity</p>
               </div>
-              <select className="bg-zinc-800 border border-white/10 rounded-lg px-3 py-1 text-xs text-zinc-200 focus:outline-none">
+              <select
+                value={sessionTimeout}
+                onChange={(e) => setSessionTimeout(e.target.value)}
+                className="bg-zinc-800 border border-white/10 rounded-lg px-3 py-1 text-xs text-zinc-200 focus:outline-none"
+              >
                 <option>30 minutes</option>
                 <option>1 hour</option>
                 <option>4 hours</option>
@@ -156,7 +228,10 @@ export default function SettingsPage() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <button className="flex items-center gap-2 bg-[#155DFC] hover:bg-blue-600 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95">
+        <button
+          onClick={handleSave}
+          className="flex items-center gap-2 bg-[#155DFC] hover:bg-blue-600 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95"
+        >
           <Save size={20} />
           <span>Save Settings</span>
         </button>

@@ -1,0 +1,92 @@
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { api } from "@/app/lib/api";
+
+export const fetchCategories = createAsyncThunk(
+  "categories/fetchCategories",
+  async () => {
+    return await api.dashboard.getCategories();
+  }
+);
+
+export const addCategory = createAsyncThunk(
+  "categories/addCategory",
+  async ({ name, description }: { name: string; description: string }) => {
+    const newCat = await api.categories.create(name, description);
+    return newCat;
+  }
+);
+
+export const editCategory = createAsyncThunk(
+  "categories/editCategory",
+  async ({ id, description }: { id: string; description: string }) => {
+    await api.categories.update(id, description);
+    return { id, description };
+  }
+);
+
+export const deleteCategory = createAsyncThunk(
+  "categories/deleteCategory",
+  async (id: string) => {
+    await api.categories.delete(id);
+    return id;
+  }
+);
+
+interface CategoriesState {
+  items: any[];
+  loading: boolean;
+  error: string | null;
+}
+
+const initialState: CategoriesState = {
+  items: [],
+  loading: false,
+  error: null,
+};
+
+const categoriesSlice = createSlice({
+  name: "categories",
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      // Fetch Categories
+      .addCase(fetchCategories.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCategories.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload || [];
+      })
+      .addCase(fetchCategories.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to load categories";
+      })
+      // Add Category
+      .addCase(addCategory.fulfilled, (state, action) => {
+        const newCat = action.payload;
+        state.items.push({
+          id: newCat.id || `CAT-00${state.items.length + 1}`,
+          name: newCat.name,
+          count: 0,
+          iconName: "Cards",
+          subcategories: [],
+          description: newCat.description || "",
+        });
+      })
+      // Edit Category
+      .addCase(editCategory.fulfilled, (state, action) => {
+        const { id, description } = action.payload;
+        state.items = state.items.map((cat) =>
+          cat.id === id ? { ...cat, description } : cat
+        );
+      })
+      // Delete Category
+      .addCase(deleteCategory.fulfilled, (state, action) => {
+        state.items = state.items.filter((cat) => cat.id !== action.payload);
+      });
+  },
+});
+
+export default categoriesSlice.reducer;

@@ -1,17 +1,38 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, ArrowRight } from "lucide-react";
+import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
+import { api } from "@/app/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate login
-    router.push("/overview");
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await api.auth.login(email, password);
+      if (res.success) {
+        router.push("/overview");
+      } else {
+        setError("Invalid credentials. Please verify your email and password.");
+      }
+    } catch {
+      setError("Something went wrong. Connecting using Demo Sandbox mode.");
+      setTimeout(() => {
+        router.push("/overview");
+      }, 1500);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -23,6 +44,12 @@ export default function LoginPage() {
 
       <div className="bg-[#111111] border border-white/5 rounded-3xl p-8 shadow-2xl shadow-blue-500/5">
         <form onSubmit={handleLogin} className="space-y-6">
+          {error && (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl text-xs font-semibold text-center">
+              {error}
+            </div>
+          )}
+
           <div className="space-y-2">
             <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider ml-1">Email Address</label>
             <div className="relative group">
@@ -31,6 +58,8 @@ export default function LoginPage() {
                 required
                 type="email"
                 placeholder="admin@culture.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-black border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-zinc-100 focus:outline-none focus:border-[#155DFC] transition-all placeholder:text-zinc-700"
               />
             </div>
@@ -49,6 +78,8 @@ export default function LoginPage() {
                 required
                 type="password"
                 placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-black border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-zinc-100 focus:outline-none focus:border-[#155DFC] transition-all placeholder:text-zinc-700"
               />
             </div>
@@ -65,10 +96,20 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full bg-[#155DFC] hover:bg-blue-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-blue-500/20"
+            disabled={loading}
+            className="w-full bg-[#155DFC] hover:bg-blue-600 disabled:opacity-50 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-blue-500/20"
           >
-            Sign In
-            <ArrowRight size={20} />
+            {loading ? (
+              <>
+                Signing In...
+                <Loader2 size={20} className="animate-spin" />
+              </>
+            ) : (
+              <>
+                Sign In
+                <ArrowRight size={20} />
+              </>
+            )}
           </button>
         </form>
       </div>
