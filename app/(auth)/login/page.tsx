@@ -25,11 +25,8 @@ export default function LoginPage() {
       } else {
         setError("Invalid credentials. Please verify your email and password.");
       }
-    } catch {
-      setError("Something went wrong. Connecting using Demo Sandbox mode.");
-      setTimeout(() => {
-        router.push("/overview");
-      }, 1500);
+    } catch (err: any) {
+      setError(err?.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

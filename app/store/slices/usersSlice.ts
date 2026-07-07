@@ -1,6 +1,18 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { api } from "@/app/lib/api";
 
+export interface User {
+  userId: string;
+  name: string;
+  username: string;
+  email: string;
+  role: string;
+  rating: number;
+  transactions: number;
+  status: "Active" | "Suspended";
+  color?: string;
+}
+
 export const fetchUsers = createAsyncThunk("users/fetchUsers", async () => {
   return await api.dashboard.getUsers();
 });
@@ -17,18 +29,6 @@ export const deleteUser = createAsyncThunk("users/deleteUser", async (userId: st
   await api.users.delete(userId);
   return userId;
 });
-
-export interface User {
-  userId: string;
-  name: string;
-  username: string;
-  email: string;
-  role: string;
-  rating: number;
-  transactions: number;
-  status: "Active" | "Suspended";
-  color?: string;
-}
 
 interface UsersState {
   items: User[];
@@ -48,7 +48,6 @@ const usersSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Fetch Users
       .addCase(fetchUsers.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -57,24 +56,28 @@ const usersSlice = createSlice({
         state.loading = false;
         state.items = (action.payload || []).map((user: any) => ({
           ...user,
-          userId: user.userId || user.id,
+          userId: user.userId || user._id || user.id,
         }));
       })
       .addCase(fetchUsers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to load users";
       })
-      // Update User Status
       .addCase(updateUserStatus.fulfilled, (state, action) => {
         const { userId, status } = action.payload;
         state.items = state.items.map((user) =>
           user.userId === userId ? { ...user, status: status as "Active" | "Suspended" } : user
         );
       })
-      // Delete User
+      .addCase(updateUserStatus.rejected, (state, action) => {
+        state.error = action.error.message || "Failed to update user status";
+      })
       .addCase(deleteUser.fulfilled, (state, action) => {
         const userId = action.payload;
         state.items = state.items.filter((user) => user.userId !== userId);
+      })
+      .addCase(deleteUser.rejected, (state, action) => {
+        state.error = action.error.message || "Failed to delete user";
       });
   },
 });

@@ -9,6 +9,7 @@ import {
   type LiveStream,
   type ScheduledStream,
 } from "@/app/store/slices/liveStreamsSlice";
+import ErrorState from "@/app/components/ErrorState";
 
 export default function LiveStreamsPage() {
   const dispatch = useAppDispatch();
@@ -26,12 +27,17 @@ export default function LiveStreamsPage() {
     }
   };
 
+  const { error } = useAppSelector((state) => state.liveStreams);
+
   if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="animate-spin text-[#155DFC]" size={40} />
       </div>
     );
+  }
+  if (error) {
+    return <ErrorState message={error} onRetry={() => dispatch(fetchLiveStreams())} />;
   }
 
   return (

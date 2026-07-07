@@ -14,6 +14,7 @@ import {
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import { fetchDisputes, resolveDispute, rejectDispute, DisputeItem } from "@/app/store/slices/disputesSlice";
 import { useAlert } from "@/app/context/AlertContext";
+import ErrorState from "@/app/components/ErrorState";
 
 export default function DisputesPage() {
   const dispatch = useAppDispatch();
@@ -47,12 +48,17 @@ export default function DisputesPage() {
     );
   };
 
+  const { error } = useAppSelector((state) => state.disputes);
+
   if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="animate-spin text-[#155DFC]" size={40} />
       </div>
     );
+  }
+  if (error) {
+    return <ErrorState message={error} onRetry={() => dispatch(fetchDisputes())} />;
   }
 
   return (

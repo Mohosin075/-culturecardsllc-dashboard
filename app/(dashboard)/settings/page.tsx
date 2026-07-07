@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import { Save, Shield, Bell, CreditCard, Percent, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import { fetchSettings, updateSettings } from "@/app/store/slices/settingsSlice";
+import ErrorState from "@/app/components/ErrorState";
 
 export default function SettingsPage() {
   const dispatch = useAppDispatch();
@@ -70,12 +71,17 @@ export default function SettingsPage() {
     }
   };
 
+  const { error } = useAppSelector((state) => state.settings);
+
   if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="animate-spin text-[#155DFC]" size={40} />
       </div>
     );
+  }
+  if (error) {
+    return <ErrorState message={error} onRetry={() => dispatch(fetchSettings())} />;
   }
 
   return (

@@ -5,6 +5,7 @@ import { Search, Filter, Eye, Trash2, Star, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import { fetchListings, deleteListing, toggleBoostListing, Listing } from "@/app/store/slices/listingsSlice";
 import { useAlert } from "@/app/context/AlertContext";
+import ErrorState from "@/app/components/ErrorState";
 
 export default function ListingsPage() {
   const dispatch = useAppDispatch();
@@ -46,12 +47,17 @@ export default function ListingsPage() {
       item.category?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const { error } = useAppSelector((state) => state.listings);
+
   if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="animate-spin text-[#155DFC]" size={40} />
       </div>
     );
+  }
+  if (error) {
+    return <ErrorState message={error} onRetry={() => dispatch(fetchListings())} />;
   }
 
   return (

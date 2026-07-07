@@ -9,15 +9,21 @@ export interface OrderItem {
   totalPrice: string;
   status: string;
   deliveryDate: string;
+  paymentId?: string;
 }
 
 export const fetchOrders = createAsyncThunk("orders/fetchOrders", async () => {
   return await api.dashboard.getOrders();
 });
 
-export const refundOrder = createAsyncThunk("orders/refundOrder", async (id: string) => {
-  return id;
-});
+export const refundOrder = createAsyncThunk(
+  "orders/refundOrder",
+  async ({ orderId, paymentId }: { orderId: string; paymentId?: string }) => {
+    // Use paymentId if available, else try orderId as the payment reference
+    await api.orders.refund(paymentId || orderId);
+    return orderId;
+  }
+);
 
 interface OrdersState {
   items: OrderItem[];
@@ -44,13 +50,21 @@ const ordersSlice = createSlice({
       .addCase(fetchOrders.fulfilled, (state, action) => {
         state.loading = false;
         state.items = (action.payload || []).map((o: any) => ({
-          id: o.id || o.orderId || "",
-          buyer: o.buyer || "Buyer",
-          seller: o.seller || "Seller",
-          item: o.item || "Collector Item",
-          totalPrice: typeof o.totalPrice === "number" ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(o.totalPrice) : (o.totalPrice || o.price || ""),
+          id: o.id || o._id || o.orderId || "",
+          buyer: o.buyer || o.buyerName || "Buyer",
+          seller: o.seller || o.sellerName || "Seller",
+          item: o.item || o.itemName || o.productName || "Collector Item",
+          totalPrice:
+            typeof o.totalPrice === "number"
+              ? new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                  maximumFractionDigits: 0,
+                }).format(o.totalPrice)
+              : o.totalPrice || o.price || "",
           status: o.status || "Pending",
-          deliveryDate: o.deliveryDate || "",
+          deliveryDate: o.deliveryDate || o.estimatedDelivery || "",
+          paymentId: o.paymentId || o.payment?._id || o.payment?.id || undefined,
         }));
       })
       .addCase(fetchOrders.rejected, (state, action) => {
@@ -61,6 +75,9 @@ const ordersSlice = createSlice({
         state.items = state.items.map((order) =>
           order.id === action.payload ? { ...order, status: "Refunded" } : order
         );
+      })
+      .addCase(refundOrder.rejected, (state, action) => {
+        state.error = action.error.message || "Failed to refund order";
       });
   },
 });

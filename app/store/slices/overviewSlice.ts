@@ -69,91 +69,15 @@ const initialState: OverviewState = {
   error: null,
 };
 
-const fallbackOverviewData: OverviewData = {
-  stats: [
-    { name: "Total Users", value: "12,540", color: "bg-blue-600" },
-    { name: "Active Sellers", value: "3,210", color: "bg-green-600" },
-    { name: "Live Streams Now", value: "28", color: "bg-red-600" },
-    { name: "Total Trades Today", value: "184", color: "bg-purple-600" },
-    { name: "Total Revenue", value: "$24,580", color: "bg-yellow-600" },
-    { name: "Pending Disputes", value: "12", color: "bg-orange-600" },
-  ],
-  revenueData: [
-    { day: "Mon", revenue: 3200 },
-    { day: "Tue", revenue: 4100 },
-    { day: "Wed", revenue: 3800 },
-    { day: "Thu", revenue: 4500 },
-    { day: "Fri", revenue: 3900 },
-    { day: "Sat", revenue: 5300 },
-    { day: "Sun", revenue: 4800 },
-  ],
-  growthData: [
-    { month: "Jan", users: 8500 },
-    { month: "Feb", users: 9200 },
-    { month: "Mar", users: 10100 },
-    { month: "Apr", users: 12540 },
-  ],
-  ratioData: [
-    { name: "Trades", value: 45 },
-    { name: "Purchases", value: 55 },
-  ],
-  recentOrders: [
-    {
-      id: "ORD-1234",
-      item: "Nike Air Jordan 1",
-      user: "John Doe",
-      price: "$320",
-      status: "Shipped",
-      statusColor: "text-blue-500 bg-blue-500/10 border-blue-500/20",
-    },
-    {
-      id: "ORD-1235",
-      item: "Rolex Submariner",
-      user: "Jane Smith",
-      price: "$8,500",
-      status: "Pending",
-      statusColor: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20",
-    },
-    {
-      id: "ORD-1236",
-      item: "Pokemon Card Charizard",
-      user: "Mike Johnson",
-      price: "$450",
-      status: "Delivered",
-      statusColor: "text-green-500 bg-green-500/10 border-green-500/20",
-    },
-  ],
-  recentTrades: [
-    {
-      id: "TRD-5678",
-      items: "Sneakers ↔ Watch",
-      users: "Alex Brown ↔ Chris Lee",
-      status: "Pending",
-      statusColor: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20",
-    },
-    {
-      id: "TRD-5679",
-      items: "Cards ↔ Sneakers",
-      users: "Emma Davis ↔ Ryan Clark",
-      status: "Accepted",
-      statusColor: "text-blue-500 bg-blue-500/10 border-blue-500/20",
-    },
-  ],
-  flaggedActivities: [
-    {
-      user: "suspect_user_99",
-      reason: "Multiple failed payment attempts",
-      level: "High",
-      color: "text-red-500 bg-red-500/10 border-red-500/20",
-    },
-    {
-      user: "trader_xyz",
-      reason: "Unusual trade pattern detected",
-      level: "Medium",
-      color: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20",
-    },
-  ],
-};
+function getStatusColor(status: string): string {
+  if (status === "Delivered" || status === "Completed" || status === "Accepted")
+    return "text-green-500 bg-green-500/10 border-green-500/20";
+  if (status === "Pending")
+    return "text-yellow-500 bg-yellow-500/10 border-yellow-500/20";
+  if (status === "Cancelled" || status === "Rejected" || status === "Declined")
+    return "text-red-500 bg-red-500/10 border-red-500/20";
+  return "text-blue-500 bg-blue-500/10 border-blue-500/20";
+}
 
 const overviewSlice = createSlice({
   name: "overview",
@@ -169,21 +93,15 @@ const overviewSlice = createSlice({
         state.loading = false;
         const payload = action.payload as any;
         if (!payload) {
-          state.data = null;
+          state.error = "No data returned from server";
           return;
         }
 
-        // Check if the payload is from the backend (contains summaryCards or revenueLast7Days)
+        // Detect backend structured response
         const isBackend = payload.summaryCards !== undefined || payload.revenueLast7Days !== undefined;
 
         if (isBackend) {
           const summary = payload.summaryCards || {};
-          
-          // If database is completely empty (zero users), use mockup demo fallback
-          if (!summary.totalUsers) {
-            state.data = fallbackOverviewData;
-            return;
-          }
 
           const stats = [
             { name: "Total Users", value: new Intl.NumberFormat().format(summary.totalUsers || 0), color: "bg-blue-600" },
@@ -199,65 +117,49 @@ const overviewSlice = createSlice({
             revenue: r.amount || r.revenue || 0,
           }));
 
-          const growthData = payload.userGrowth || [];
+          const growthData = (payload.userGrowth || []).map((g: any) => ({
+            month: g.month,
+            users: g.users || g.count || 0,
+          }));
 
-          const ratio = payload.tradeVsPurchaseRatio || { trades: 45, purchases: 55 };
+          const ratio = payload.tradeVsPurchaseRatio || { trades: 0, purchases: 0 };
           const ratioData = [
-            { name: "Trades", value: ratio.trades },
-            { name: "Purchases", value: ratio.purchases },
+            { name: "Trades", value: ratio.trades || 0 },
+            { name: "Purchases", value: ratio.purchases || 0 },
           ];
 
-          const recentOrders = (payload.recentOrders || []).map((order: any) => {
-            const statusColor = 
-              order.status === "Delivered" ? "text-green-500 bg-green-500/10 border-green-500/20" :
-              order.status === "Pending" ? "text-yellow-500 bg-yellow-500/10 border-yellow-500/20" :
-              "text-blue-500 bg-blue-500/10 border-blue-500/20";
-            return {
-              id: order.id || "",
-              status: order.status || "Pending",
-              statusColor: order.statusColor || statusColor,
-              item: order.item || order.title || "Product",
-              user: order.user || order.buyer || "Customer",
-              price: typeof order.amount === "number" ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(order.amount) : (order.price || ""),
-            };
-          });
+          const recentOrders = (payload.recentOrders || []).map((order: any) => ({
+            id: order.id || order._id || "",
+            status: order.status || "Pending",
+            statusColor: order.statusColor || getStatusColor(order.status || "Pending"),
+            item: order.item || order.title || order.productName || "Product",
+            user: order.user || order.buyer || order.buyerName || "Customer",
+            price: typeof order.amount === "number"
+              ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(order.amount)
+              : (order.price || order.totalPrice || ""),
+          }));
 
-          const recentTrades = (payload.recentTrades || []).map((trade: any) => {
-            const statusColor = 
-              trade.status === "Completed" || trade.status === "Accepted" ? "text-green-500 bg-green-500/10 border-green-500/20" :
-              "text-yellow-500 bg-yellow-500/10 border-yellow-500/20";
-            return {
-              id: trade.id || "",
-              status: trade.status || "Pending",
-              statusColor: trade.statusColor || statusColor,
-              items: trade.items || trade.title || "Items",
-              users: trade.users || `${trade.sender || "User A"} ↔ ${trade.receiver || "User B"}`,
-            };
-          });
+          const recentTrades = (payload.recentTrades || []).map((trade: any) => ({
+            id: trade.id || trade._id || "",
+            status: trade.status || "Pending",
+            statusColor: trade.statusColor || getStatusColor(trade.status || "Pending"),
+            items: trade.items || trade.title || `${trade.senderProduct || "Item A"} ↔ ${trade.receiverProduct || "Item B"}`,
+            users: trade.users || `${trade.sender || trade.userA || "User A"} ↔ ${trade.receiver || trade.userB || "User B"}`,
+          }));
 
           const flaggedActivities = (payload.flaggedActivities || []).map((activity: any) => {
-            const color = 
-              activity.severity === "High" || activity.level === "High" ? "text-red-500 bg-red-500/10 border-red-500/20" :
-              "text-yellow-500 bg-yellow-500/10 border-yellow-500/20";
+            const level = activity.level || activity.severity || "Medium";
             return {
               user: activity.user || activity.username || "user",
-              level: activity.level || activity.severity || "Medium",
-              color: activity.color || color,
+              level,
+              color: activity.color || getStatusColor(level === "High" ? "Declined" : "Pending"),
               reason: activity.reason || "Suspicious activity",
             };
           });
 
-          state.data = {
-            stats,
-            revenueData,
-            growthData,
-            ratioData,
-            recentOrders,
-            recentTrades,
-            flaggedActivities,
-          };
+          state.data = { stats, revenueData, growthData, ratioData, recentOrders, recentTrades, flaggedActivities };
         } else {
-          // Frontend fallback mockup data structure matches
+          // Direct object match (e.g. already-normalised structure)
           state.data = payload;
         }
       })

@@ -16,6 +16,7 @@ export const fetchTrades = createAsyncThunk("trades/fetchTrades", async () => {
 });
 
 export const declineTrade = createAsyncThunk("trades/declineTrade", async (id: string) => {
+  await api.trades.decline(id);
   return id;
 });
 
@@ -52,12 +53,12 @@ const tradesSlice = createSlice({
             receiverProduct = parts[1]?.trim() || "Item B";
           }
           return {
-            id: trade.id || trade.tradeId || "",
-            sender: trade.sender || trade.userA || "User A",
-            receiver: trade.receiver || trade.userB || "User B",
+            id: trade.id || trade._id || trade.tradeId || "",
+            sender: trade.sender || trade.userA || trade.senderName || "User A",
+            receiver: trade.receiver || trade.userB || trade.receiverName || "User B",
             senderProduct,
             receiverProduct,
-            supplement: trade.supplement || (trade.valueMatch ? `+$${Math.max(0, 100 - trade.valueMatch)}` : "$0"),
+            supplement: trade.supplement || (trade.cashTopUp ? `$${trade.cashTopUp}` : "$0"),
             status: trade.status || "Pending",
           };
         });
@@ -68,6 +69,9 @@ const tradesSlice = createSlice({
       })
       .addCase(declineTrade.fulfilled, (state, action) => {
         state.items = state.items.filter((trade) => trade.id !== action.payload);
+      })
+      .addCase(declineTrade.rejected, (state, action) => {
+        state.error = action.error.message || "Failed to decline trade";
       });
   },
 });

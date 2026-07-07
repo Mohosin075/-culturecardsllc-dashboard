@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { DollarSign, TrendingUp, Clock, CheckCircle, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import { fetchPayments, type Transaction } from "@/app/store/slices/paymentsSlice";
+import ErrorState from "@/app/components/ErrorState";
 
 const formatCurrency = (val: string | number) => {
   if (typeof val === "string") {
@@ -28,11 +29,13 @@ export default function PaymentsPage() {
   }, [dispatch]);
 
   const stats = [
-    { name: "Total Revenue", value: summary ? formatCurrency(summary.totalRevenue) : "$124,580", icon: DollarSign, color: "bg-green-500" },
-    { name: "Commission Earned", value: summary ? formatCurrency(summary.commissionEarned) : "$6,229", icon: TrendingUp, color: "bg-blue-500" },
-    { name: "Pending Payouts", value: summary ? formatCurrency(summary.pendingPayouts) : "$3,450", icon: Clock, color: "bg-yellow-500" },
-    { name: "Completed Payouts", value: summary ? formatCurrency(summary.completedPayouts) : "$98,200", icon: CheckCircle, color: "bg-purple-500" },
+    { name: "Total Revenue", value: formatCurrency(summary?.totalRevenue ?? 0), icon: DollarSign, color: "bg-green-500" },
+    { name: "Commission Earned", value: formatCurrency(summary?.commissionEarned ?? 0), icon: TrendingUp, color: "bg-blue-500" },
+    { name: "Pending Payouts", value: formatCurrency(summary?.pendingPayouts ?? 0), icon: Clock, color: "bg-yellow-500" },
+    { name: "Completed Payouts", value: formatCurrency(summary?.completedPayouts ?? 0), icon: CheckCircle, color: "bg-purple-500" },
   ];
+
+  const { error } = useAppSelector((state) => state.payments);
 
   if (loading) {
     return (
@@ -40,6 +43,9 @@ export default function PaymentsPage() {
         <Loader2 className="animate-spin text-[#155DFC]" size={40} />
       </div>
     );
+  }
+  if (error) {
+    return <ErrorState message={error} onRetry={() => dispatch(fetchPayments())} />;
   }
 
   return (

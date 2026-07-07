@@ -19,7 +19,7 @@ export const addCategory = createAsyncThunk(
 export const editCategory = createAsyncThunk(
   "categories/editCategory",
   async ({ id, description }: { id: string; description: string }) => {
-    await api.categories.update(id, description);
+    await api.categories.update(id, { description });
     return { id, description };
   }
 );

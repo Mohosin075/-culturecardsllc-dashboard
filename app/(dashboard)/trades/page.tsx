@@ -5,6 +5,7 @@ import { Search, Filter, Eye, X, ArrowLeftRight, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import { fetchTrades, declineTrade, Trade } from "@/app/store/slices/tradesSlice";
 import { useAlert } from "@/app/context/AlertContext";
+import ErrorState from "@/app/components/ErrorState";
 
 export default function TradesPage() {
   const dispatch = useAppDispatch();
@@ -36,12 +37,17 @@ export default function TradesPage() {
       trade.receiverProduct?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const { error } = useAppSelector((state) => state.trades);
+
   if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="animate-spin text-[#155DFC]" size={40} />
       </div>
     );
+  }
+  if (error) {
+    return <ErrorState message={error} onRetry={() => dispatch(fetchTrades())} />;
   }
 
   return (

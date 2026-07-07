@@ -5,6 +5,7 @@ import { Search, Filter, Eye, RefreshCcw, DollarSign, Loader2 } from "lucide-rea
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import { fetchOrders, refundOrder, OrderItem } from "@/app/store/slices/ordersSlice";
 import { useAlert } from "@/app/context/AlertContext";
+import ErrorState from "@/app/components/ErrorState";
 
 export default function OrdersPage() {
   const dispatch = useAppDispatch();
@@ -16,12 +17,12 @@ export default function OrdersPage() {
     dispatch(fetchOrders());
   }, [dispatch]);
 
-  const handleRefund = (id: string) => {
+  const handleRefund = (order: OrderItem) => {
     showConfirm(
-      `Are you sure you want to initiate a full refund for order ${id}?`,
+      `Are you sure you want to initiate a full refund for order ${order.id}?`,
       () => {
-        dispatch(refundOrder(id));
-        showAlert(`Refund initiated for order ${id}.`, "success");
+        dispatch(refundOrder({ orderId: order.id, paymentId: order.paymentId }));
+        showAlert(`Refund initiated for order ${order.id}.`, "success");
       },
       "Initiate Refund"
     );
@@ -35,12 +36,17 @@ export default function OrdersPage() {
       order.item?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const { error } = useAppSelector((state) => state.orders);
+
   if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="animate-spin text-[#155DFC]" size={40} />
       </div>
     );
+  }
+  if (error) {
+    return <ErrorState message={error} onRetry={() => dispatch(fetchOrders())} />;
   }
 
   return (
@@ -129,7 +135,7 @@ export default function OrdersPage() {
                         <Eye size={18} />
                       </button>
                       <button
-                        onClick={() => handleRefund(order.id)}
+                        onClick={() => handleRefund(order)}
                         className="hover:text-blue-400 transition-colors"
                         title="Refund/Return"
                       >

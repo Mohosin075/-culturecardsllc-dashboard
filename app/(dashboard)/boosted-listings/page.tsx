@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { Star, CheckCircle2, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import { fetchBoostedListings, BoostedListing } from "@/app/store/slices/boostedListingsSlice";
+import ErrorState from "@/app/components/ErrorState";
 
 export default function BoostedListingsPage() {
   const dispatch = useAppDispatch();
@@ -13,12 +14,17 @@ export default function BoostedListingsPage() {
     dispatch(fetchBoostedListings());
   }, [dispatch]);
 
+  const { error } = useAppSelector((state) => state.boostedListings);
+
   if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="animate-spin text-[#155DFC]" size={40} />
       </div>
     );
+  }
+  if (error) {
+    return <ErrorState message={error} onRetry={() => dispatch(fetchBoostedListings())} />;
   }
 
   return (

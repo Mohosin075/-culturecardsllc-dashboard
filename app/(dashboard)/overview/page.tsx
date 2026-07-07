@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
+import ErrorState from "@/app/components/ErrorState";
 import { 
   LineChart, 
   Line, 
@@ -50,12 +51,18 @@ export default function OverviewPage() {
     dispatch(fetchOverview());
   }, [dispatch]);
 
-  if (loading || !data) {
+  const overviewError = useAppSelector((state: any) => state.overview.error);
+
+  if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="animate-spin text-[#155DFC]" size={40} />
       </div>
     );
+  }
+
+  if (overviewError || !data) {
+    return <ErrorState message={overviewError || undefined} onRetry={() => dispatch(fetchOverview())} />;
   }
 
   const {

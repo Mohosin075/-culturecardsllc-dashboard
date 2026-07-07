@@ -10,6 +10,7 @@ import {
    SellerVerificationRequest
 } from "@/app/store/slices/sellerVerificationSlice";
 import { useAlert } from "@/app/context/AlertContext";
+import ErrorState from "@/app/components/ErrorState";
 
 export default function SellerVerificationPage() {
   const dispatch = useAppDispatch();
@@ -42,12 +43,17 @@ export default function SellerVerificationPage() {
     );
   };
 
+  const { error } = useAppSelector((state) => state.sellerVerification);
+
   if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="animate-spin text-[#155DFC]" size={40} />
       </div>
     );
+  }
+  if (error) {
+    return <ErrorState message={error} onRetry={() => dispatch(fetchSellerVerifications())} />;
   }
 
   return (

@@ -11,13 +11,14 @@ export const fetchNotifications = createAsyncThunk(
 export const markAllNotificationsRead = createAsyncThunk(
   "notifications/markAllNotificationsRead",
   async () => {
-    await api.dashboard.markNotificationsRead();
+    await api.notifications.markAllRead();
   }
 );
 
 export const markNotificationRead = createAsyncThunk(
   "notifications/markNotificationRead",
   async (id: string | number) => {
+    await api.notifications.markRead(id.toString());
     return id;
   }
 );
@@ -56,22 +57,22 @@ const notificationsSlice = createSlice({
       })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
         state.loading = false;
-        
+
         let rawNotifications: any[] = [];
         const payload = action.payload as any;
 
         if (Array.isArray(payload)) {
           rawNotifications = payload;
         } else if (payload && typeof payload === "object") {
-          rawNotifications = payload.notifications || [];
+          rawNotifications = payload.notifications || payload.data || [];
         }
 
         state.items = rawNotifications.map((item: any, idx: number) => ({
-          id: item.id || `NTF-${(idx + 1).toString().padStart(3, '0')}`,
+          id: item.id || item._id || `NTF-${(idx + 1).toString().padStart(3, "0")}`,
           title: item.title || "Notification",
           category: item.category,
-          text: item.text || item.message || item.content || "",
-          date: item.date || item.timeAgo || item.time || "Just now",
+          text: item.text || item.message || item.content || item.body || "",
+          date: item.date || item.timeAgo || item.createdAt || "Just now",
           type: item.type || (item.category ? item.category.split(" ")[0].toLowerCase() : "system"),
           read: item.read !== undefined ? item.read : (item.isRead !== undefined ? item.isRead : false),
         }));
@@ -83,10 +84,16 @@ const notificationsSlice = createSlice({
       .addCase(markAllNotificationsRead.fulfilled, (state) => {
         state.items = state.items.map((n) => ({ ...n, read: true }));
       })
+      .addCase(markAllNotificationsRead.rejected, (state, action) => {
+        state.error = action.error.message || "Failed to mark all as read";
+      })
       .addCase(markNotificationRead.fulfilled, (state, action) => {
         state.items = state.items.map((n) =>
           n.id === action.payload ? { ...n, read: true } : n
         );
+      })
+      .addCase(markNotificationRead.rejected, (state, action) => {
+        state.error = action.error.message || "Failed to mark notification as read";
       });
   },
 });

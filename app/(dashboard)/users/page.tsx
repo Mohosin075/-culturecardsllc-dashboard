@@ -5,6 +5,7 @@ import { Search, Filter, Eye, UserMinus, ShieldCheck, Star, Loader2 } from "luci
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import { fetchUsers, updateUserStatus, deleteUser, type User } from "@/app/store/slices/usersSlice";
 import { useAlert } from "@/app/context/AlertContext";
+import ErrorState from "@/app/components/ErrorState";
 
 export default function UsersPage() {
   const dispatch = useAppDispatch();
@@ -46,12 +47,17 @@ export default function UsersPage() {
       user.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const { error } = useAppSelector((state) => state.users);
+
   if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="animate-spin text-[#155DFC]" size={40} />
       </div>
     );
+  }
+  if (error) {
+    return <ErrorState message={error} onRetry={() => dispatch(fetchUsers())} />;
   }
 
   return (

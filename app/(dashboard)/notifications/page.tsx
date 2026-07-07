@@ -31,6 +31,7 @@ import {
   markNotificationRead,
   type SystemNotification,
 } from "@/app/store/slices/notificationsSlice";
+import ErrorState from "@/app/components/ErrorState";
 
 export default function NotificationsPage() {
   const dispatch = useAppDispatch();
@@ -61,12 +62,17 @@ export default function NotificationsPage() {
 
   const unreadCount = notifications.filter((n) => n.isUnread).length;
 
+  const { error } = useAppSelector((state) => state.notifications);
+
   if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="animate-spin text-[#155DFC]" size={40} />
       </div>
     );
+  }
+  if (error) {
+    return <ErrorState message={error} onRetry={() => dispatch(fetchNotifications())} />;
   }
 
   return (

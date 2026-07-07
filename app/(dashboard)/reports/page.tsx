@@ -17,6 +17,7 @@ import {
 import { TrendingUp, Users, DollarSign, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import { fetchReports } from "@/app/store/slices/reportsSlice";
+import ErrorState from "@/app/components/ErrorState";
 
 const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
   "total sales": TrendingUp,
@@ -38,12 +39,17 @@ export default function ReportsPage() {
     dispatch(fetchReports());
   }, [dispatch]);
 
-  if (loading || !data) {
+  const { error } = useAppSelector((state) => state.reports);
+
+  if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="animate-spin text-[#155DFC]" size={40} />
       </div>
     );
+  }
+  if (error || !data) {
+    return <ErrorState message={error || undefined} onRetry={() => dispatch(fetchReports())} />;
   }
 
   // Support fallback arrays from original static component
