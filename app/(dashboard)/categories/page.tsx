@@ -23,32 +23,43 @@ import {
   deleteCategory,
   type Category,
 } from "@/app/store/slices/categoriesSlice";
+import { useAlert } from "@/app/context/AlertContext";
 
 export default function CategoriesPage() {
   const dispatch = useAppDispatch();
   const { items: categories, loading } = useAppSelector((state) => state.categories);
+  const { showAlert, showConfirm, showPrompt } = useAlert();
 
   useEffect(() => {
     dispatch(fetchCategories());
   }, [dispatch]);
 
-  const handleAddCategory = async () => {
-    const name = prompt("Enter Category Name:");
-    if (!name) return;
-    const description = prompt("Enter Category Description:") || "";
-    dispatch(addCategory({ name, description }));
+  const handleAddCategory = () => {
+    showPrompt("Add Category Name", "Category Name (e.g. Rare Coins)", (name) => {
+      if (!name) return;
+      showPrompt("Add Category Description", "Category Description", (description) => {
+        dispatch(addCategory({ name, description: description || "" }));
+        showAlert("Category added successfully.", "success");
+      });
+    });
   };
 
-  const handleEditCategory = async (id: string, currentDesc: string) => {
-    const description = prompt("Enter New Description:", currentDesc);
-    if (description === null) return;
-    dispatch(editCategory({ id, description }));
+  const handleEditCategory = (id: string, currentDesc: string) => {
+    showPrompt("Edit Category Description", "Description", (description) => {
+      dispatch(editCategory({ id, description }));
+      showAlert("Category updated successfully.", "success");
+    }, currentDesc);
   };
 
-  const handleDeleteCategory = async (id: string) => {
-    if (confirm("Are you sure you want to delete this category?")) {
-      dispatch(deleteCategory(id));
-    }
+  const handleDeleteCategory = (id: string) => {
+    showConfirm(
+      "Are you sure you want to delete this category? All associated subcategories will be removed.",
+      () => {
+        dispatch(deleteCategory(id));
+        showAlert("Category deleted successfully.", "success");
+      },
+      "Delete Category"
+    );
   };
 
   if (loading) {

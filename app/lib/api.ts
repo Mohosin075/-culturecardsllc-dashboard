@@ -236,6 +236,15 @@ class ApiClient {
         },
         { success: true }
       ),
+    update: (userId: string, data: { status?: string; verified?: boolean }) =>
+      this.request(
+        `/users/${userId}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(data),
+        },
+        { success: true }
+      ),
     delete: (userId: string) =>
       this.request(`/users/${userId}`, { method: "DELETE" }, { success: true }),
   };

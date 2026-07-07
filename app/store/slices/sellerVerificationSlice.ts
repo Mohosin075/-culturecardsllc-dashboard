@@ -21,7 +21,7 @@ export const fetchSellerVerifications = createAsyncThunk(
 export const approveVerification = createAsyncThunk(
   "sellerVerification/approveVerification",
   async (id: string) => {
-    // For live backend, this can hit a verifications endpoint, but for now we filter it out
+    await api.users.update(id, { verified: true });
     return id;
   }
 );
@@ -29,6 +29,7 @@ export const approveVerification = createAsyncThunk(
 export const rejectVerification = createAsyncThunk(
   "sellerVerification/rejectVerification",
   async (id: string) => {
+    await api.users.update(id, { verified: false });
     return id;
   }
 );

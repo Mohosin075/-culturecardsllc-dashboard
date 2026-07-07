@@ -9,23 +9,37 @@ import {
    rejectVerification,
    SellerVerificationRequest
 } from "@/app/store/slices/sellerVerificationSlice";
+import { useAlert } from "@/app/context/AlertContext";
 
 export default function SellerVerificationPage() {
   const dispatch = useAppDispatch();
   const { items: requests, loading } = useAppSelector((state) => state.sellerVerification);
+  const { showAlert, showConfirm } = useAlert();
 
   useEffect(() => {
     dispatch(fetchSellerVerifications());
   }, [dispatch]);
 
   const handleApprove = async (id: string) => {
-    alert(`Verification request ${id} approved successfully.`);
-    dispatch(approveVerification(id));
+    showConfirm(
+      "Are you sure you want to approve this seller verification request?",
+      () => {
+        dispatch(approveVerification(id));
+        showAlert("Verification request approved successfully.", "success");
+      },
+      "Approve Seller"
+    );
   };
 
   const handleReject = async (id: string) => {
-    alert(`Verification request ${id} rejected.`);
-    dispatch(rejectVerification(id));
+    showConfirm(
+      "Are you sure you want to reject this seller verification request?",
+      () => {
+        dispatch(rejectVerification(id));
+        showAlert("Verification request rejected.", "info");
+      },
+      "Reject Seller"
+    );
   };
 
   if (loading) {

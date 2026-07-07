@@ -4,11 +4,13 @@ import React, { useState, useEffect } from "react";
 import { Search, Filter, Eye, UserMinus, ShieldCheck, Star, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import { fetchUsers, updateUserStatus, deleteUser, type User } from "@/app/store/slices/usersSlice";
+import { useAlert } from "@/app/context/AlertContext";
 
 export default function UsersPage() {
   const dispatch = useAppDispatch();
   const { items: users, loading } = useAppSelector((state) => state.users);
   const [searchQuery, setSearchQuery] = useState("");
+  const { showAlert, showConfirm } = useAlert();
 
   useEffect(() => {
     dispatch(fetchUsers());
@@ -16,13 +18,25 @@ export default function UsersPage() {
 
   const handleToggleStatus = async (userId: string, currentStatus: string) => {
     const nextStatus = currentStatus === "Active" ? "Suspended" : "Active";
-    dispatch(updateUserStatus({ userId, status: nextStatus }));
+    showConfirm(
+      `Are you sure you want to ${nextStatus === "Suspended" ? "suspend" : "activate"} this user?`,
+      () => {
+        dispatch(updateUserStatus({ userId, status: nextStatus }));
+        showAlert(`User status updated to ${nextStatus}.`, "success");
+      },
+      "Toggle User Status"
+    );
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (confirm("Are you sure you want to delete this user?")) {
-      dispatch(deleteUser(userId));
-    }
+    showConfirm(
+      "Are you sure you want to delete this user account? All associated data will be deleted.",
+      () => {
+        dispatch(deleteUser(userId));
+        showAlert("User deleted successfully.", "success");
+      },
+      "Delete User"
+    );
   };
 
   const filteredUsers = users.filter(

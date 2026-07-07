@@ -4,21 +4,27 @@ import React, { useState, useEffect } from "react";
 import { Search, Filter, Eye, RefreshCcw, DollarSign, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import { fetchOrders, refundOrder, OrderItem } from "@/app/store/slices/ordersSlice";
+import { useAlert } from "@/app/context/AlertContext";
 
 export default function OrdersPage() {
   const dispatch = useAppDispatch();
   const { items: orders, loading } = useAppSelector((state) => state.orders);
   const [searchQuery, setSearchQuery] = useState("");
+  const { showAlert, showConfirm } = useAlert();
 
   useEffect(() => {
     dispatch(fetchOrders());
   }, [dispatch]);
 
   const handleRefund = (id: string) => {
-    if (confirm(`Are you sure you want to refund order ${id}?`)) {
-      alert(`Refund initiated for order ${id}.`);
-      dispatch(refundOrder(id));
-    }
+    showConfirm(
+      `Are you sure you want to initiate a full refund for order ${id}?`,
+      () => {
+        dispatch(refundOrder(id));
+        showAlert(`Refund initiated for order ${id}.`, "success");
+      },
+      "Initiate Refund"
+    );
   };
 
   const filteredOrders = orders.filter(

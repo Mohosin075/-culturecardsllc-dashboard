@@ -13,26 +13,38 @@ import {
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import { fetchDisputes, resolveDispute, rejectDispute, DisputeItem } from "@/app/store/slices/disputesSlice";
+import { useAlert } from "@/app/context/AlertContext";
 
 export default function DisputesPage() {
   const dispatch = useAppDispatch();
   const { items: disputes, loading } = useAppSelector((state) => state.disputes);
   const [selectedDispute, setSelectedDispute] = useState<DisputeItem | null>(null);
+  const { showAlert, showConfirm } = useAlert();
 
   useEffect(() => {
     dispatch(fetchDisputes());
   }, [dispatch]);
 
   const handleResolve = async (disputeId: string) => {
-    if (confirm(`Are you sure you want to mark dispute ${disputeId} as resolved?`)) {
-      dispatch(resolveDispute(disputeId));
-    }
+    showConfirm(
+      `Are you sure you want to mark dispute ${disputeId} as resolved?`,
+      () => {
+        dispatch(resolveDispute(disputeId));
+        showAlert("Dispute resolved successfully.", "success");
+      },
+      "Resolve Dispute"
+    );
   };
 
   const handleReject = async (disputeId: string) => {
-    if (confirm(`Are you sure you want to reject dispute ${disputeId}?`)) {
-      dispatch(rejectDispute(disputeId));
-    }
+    showConfirm(
+      `Are you sure you want to reject dispute ${disputeId}?`,
+      () => {
+        dispatch(rejectDispute(disputeId));
+        showAlert("Dispute rejected.", "info");
+      },
+      "Reject Dispute"
+    );
   };
 
   if (loading) {

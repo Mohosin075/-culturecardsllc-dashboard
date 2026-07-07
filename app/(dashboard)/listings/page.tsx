@@ -4,24 +4,39 @@ import React, { useState, useEffect } from "react";
 import { Search, Filter, Eye, Trash2, Star, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import { fetchListings, deleteListing, toggleBoostListing, Listing } from "@/app/store/slices/listingsSlice";
+import { useAlert } from "@/app/context/AlertContext";
 
 export default function ListingsPage() {
   const dispatch = useAppDispatch();
   const { items: listings, loading } = useAppSelector((state) => state.listings);
   const [searchQuery, setSearchQuery] = useState("");
+  const { showAlert, showConfirm } = useAlert();
 
   useEffect(() => {
     dispatch(fetchListings());
   }, [dispatch]);
 
   const handleDeleteListing = async (productId: string) => {
-    if (confirm("Are you sure you want to delete this listing?")) {
-      dispatch(deleteListing(productId));
-    }
+    showConfirm(
+      "Are you sure you want to delete this listing? This action cannot be undone.",
+      () => {
+        dispatch(deleteListing(productId));
+        showAlert("Listing deleted successfully.", "success");
+      },
+      "Delete Listing"
+    );
   };
 
   const handleToggleBoost = (productId: string, boosted: boolean) => {
-    dispatch(toggleBoostListing({ id: productId, boosted }));
+    const actionText = boosted ? "remove boost from" : "boost";
+    showConfirm(
+      `Are you sure you want to ${actionText} this listing?`,
+      () => {
+        dispatch(toggleBoostListing({ id: productId, boosted }));
+        showAlert(`Listing ${boosted ? "unboosted" : "boosted"} successfully.`, "success");
+      },
+      "Boost Status"
+    );
   };
 
   const filteredListings = listings.filter(

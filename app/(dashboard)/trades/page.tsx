@@ -4,20 +4,27 @@ import React, { useState, useEffect } from "react";
 import { Search, Filter, Eye, X, ArrowLeftRight, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/store/store";
 import { fetchTrades, declineTrade, Trade } from "@/app/store/slices/tradesSlice";
+import { useAlert } from "@/app/context/AlertContext";
 
 export default function TradesPage() {
   const dispatch = useAppDispatch();
   const { items: trades, loading } = useAppSelector((state) => state.trades);
   const [searchQuery, setSearchQuery] = useState("");
+  const { showAlert, showConfirm } = useAlert();
 
   useEffect(() => {
     dispatch(fetchTrades());
   }, [dispatch]);
 
   const handleDeclineTrade = (id: string) => {
-    if (confirm("Are you sure you want to decline this trade?")) {
-      dispatch(declineTrade(id));
-    }
+    showConfirm(
+      "Are you sure you want to decline this trade transaction? This action cannot be undone.",
+      () => {
+        dispatch(declineTrade(id));
+        showAlert("Trade declined successfully.", "success");
+      },
+      "Decline Trade"
+    );
   };
 
   const filteredTrades = trades.filter(
