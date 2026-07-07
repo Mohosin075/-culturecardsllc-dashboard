@@ -121,7 +121,10 @@ export default function SellerVerificationPage() {
                 <X size={18} />
                 Reject
               </button>
-              <button className="p-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 rounded-xl transition-all">
+              <button
+                onClick={() => showAlert(`Opening verification discussion channel with ${request.name} (${request.email})`, "info")}
+                className="p-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 rounded-xl transition-all"
+              >
                 <MessageSquare size={18} />
               </button>
             </div>

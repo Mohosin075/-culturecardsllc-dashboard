@@ -4,7 +4,7 @@ import { api } from "@/app/lib/api";
 export const fetchCategories = createAsyncThunk(
   "categories/fetchCategories",
   async () => {
-    return await api.dashboard.getCategories();
+    return await api.categories.getAll();
   }
 );
 
@@ -68,10 +68,11 @@ const categoriesSlice = createSlice({
         state.loading = false;
         state.items = (action.payload || []).map((cat: any, idx: number) => ({
           ...cat,
-          id: cat.id || cat.categoryId || `CAT-${(idx + 1).toString().padStart(3, '0')}`,
+          id: cat._id || cat.id || cat.categoryId || `CAT-${(idx + 1).toString().padStart(3, '0')}`,
           count: cat.count !== undefined ? cat.count : (cat.listingsCount || 0),
-          iconName: cat.iconName || (cat.name === "Sneakers" ? "Footprints" : (cat.name === "Trading Cards" ? "Cards" : (cat.name === "Watches" ? "Watch" : (cat.name === "Tech" ? "Laptop" : "Cards")))),
+          iconName: cat.iconName || (cat.name === "Sneakers" ? "Footprints" : (cat.name === "Trading Cards" || cat.name === "Cards" ? "Cards" : (cat.name === "Watches" ? "Watch" : (cat.name === "Tech" ? "Laptop" : "Cards")))),
           subcategories: cat.subcategories || [],
+          description: cat.description || "",
         }));
       })
       .addCase(fetchCategories.rejected, (state, action) => {

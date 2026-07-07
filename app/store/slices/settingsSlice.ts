@@ -7,9 +7,29 @@ export const fetchSettings = createAsyncThunk("settings/fetchSettings", async ()
 
 export const updateSettings = createAsyncThunk(
   "settings/updateSettings",
-  async (settings: any) => {
-    await api.dashboard.updateSettings(settings);
-    return settings;
+  async (flatSettings: any) => {
+    const formattedSettings = {
+      commissionSettings: {
+        purchaseCommission: flatSettings.commissionPurchase,
+        tradeCommission: flatSettings.commissionTrade,
+      },
+      paymentGateway: {
+        primaryProcessor: flatSettings.gatewayName,
+        apiKey: flatSettings.gatewayKey,
+        enableTestMode: flatSettings.testMode,
+      },
+      notificationSettings: {
+        newOrderNotifications: flatSettings.toggles?.newOrder,
+        disputeAlerts: flatSettings.toggles?.dispute,
+        systemAlerts: flatSettings.toggles?.system,
+      },
+      securitySettings: {
+        twoFactorAuthentication: flatSettings.toggles?.twoFactor,
+        ipWhitelist: flatSettings.toggles?.ipWhitelist,
+        sessionTimeout: typeof flatSettings.sessionTimeout === "string" ? parseInt(flatSettings.sessionTimeout) || 30 : flatSettings.sessionTimeout,
+      },
+    };
+    return await api.dashboard.updateSettings(formattedSettings);
   }
 );
 
@@ -48,30 +68,7 @@ const settingsSlice = createSlice({
       })
       .addCase(updateSettings.fulfilled, (state, action) => {
         state.loading = false;
-        // Merge updated state
-        if (state.data) {
-          state.data = {
-            ...state.data,
-            commissionSettings: {
-              purchaseCommission: action.payload.commissionPurchase,
-              tradeCommission: action.payload.commissionTrade,
-            },
-            paymentGateway: {
-              processor: action.payload.gatewayName,
-              testMode: action.payload.testMode,
-            },
-            notificationSettings: {
-              newOrderNotifications: action.payload.toggles?.newOrder,
-              disputeAlerts: action.payload.toggles?.dispute,
-              systemAlerts: action.payload.toggles?.system,
-            },
-            securitySettings: {
-              twoFactor: action.payload.toggles?.twoFactor,
-              ipWhitelist: action.payload.toggles?.ipWhitelist,
-              sessionTimeout: action.payload.sessionTimeout,
-            },
-          };
-        }
+        state.data = action.payload;
       })
       .addCase(updateSettings.rejected, (state, action) => {
         state.loading = false;

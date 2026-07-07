@@ -134,7 +134,10 @@ export default function DisputesPage() {
                   <Eye size={18} />
                   View Evidence
                 </button>
-                <button className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2 rounded-xl text-sm font-bold transition-all border border-white/5">
+                <button
+                  onClick={() => showAlert(`Opening moderator chat room with dispute participants: ${dispute.users.map(u => u.name).join(", ")}`, "info")}
+                  className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2 rounded-xl text-sm font-bold transition-all border border-white/5"
+                >
                   <MessageSquare size={18} />
                   Chat with Users
                 </button>

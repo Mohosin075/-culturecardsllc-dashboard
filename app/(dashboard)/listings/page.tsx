@@ -145,7 +145,11 @@ export default function ListingsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3 text-zinc-500">
-                      <button className="hover:text-white transition-colors" title="View Listing Details">
+                      <button
+                        onClick={() => showAlert(`Viewing details for product listing: ${item.item} by ${item.seller}`, "info")}
+                        className="hover:text-white transition-colors"
+                        title="View Listing Details"
+                      >
                         <Eye size={18} />
                       </button>
                       <button

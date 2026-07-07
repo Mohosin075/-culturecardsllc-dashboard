@@ -141,7 +141,11 @@ export default function UsersPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3 text-zinc-500">
-                      <button className="hover:text-white transition-colors" title="View Profile">
+                      <button
+                        onClick={() => showAlert(`Viewing profile details of ${user.name} (${user.email})`, "info")}
+                        className="hover:text-white transition-colors"
+                        title="View Profile"
+                      >
                         <Eye size={18} />
                       </button>
                       <button

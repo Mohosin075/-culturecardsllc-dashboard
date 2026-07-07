@@ -14,13 +14,14 @@ export interface User {
 }
 
 export const fetchUsers = createAsyncThunk("users/fetchUsers", async () => {
-  return await api.dashboard.getUsers();
+  return await api.users.getAll();
 });
 
 export const updateUserStatus = createAsyncThunk(
   "users/updateUserStatus",
   async ({ userId, status }: { userId: string; status: string }) => {
-    await api.users.updateStatus(userId, status);
+    const backendStatus = status === "Active" ? "active" : "inactive";
+    await api.users.updateStatus(userId, backendStatus);
     return { userId, status };
   }
 );
@@ -54,10 +55,22 @@ const usersSlice = createSlice({
       })
       .addCase(fetchUsers.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = (action.payload || []).map((user: any) => ({
-          ...user,
-          userId: user.userId || user._id || user.id,
-        }));
+        state.items = (action.payload || []).map((user: any, idx: number) => {
+          const usernameStr = user.email
+            ? `@${user.email.split("@")[0]}`
+            : `@user${idx + 1}`;
+          const displayRole = user.roles ? user.roles.join("/") : (user.role || "Buyer");
+          return {
+            userId: user._id || user.userId || user.id || "",
+            name: user.fullName || user.name || "Anonymous User",
+            username: user.username || usernameStr,
+            email: user.email || "no-email@example.com",
+            role: displayRole,
+            rating: user.rating !== undefined ? user.rating : 0,
+            transactions: user.transactions !== undefined ? user.transactions : 0,
+            status: user.status === "active" ? "Active" : "Suspended",
+          };
+        });
       })
       .addCase(fetchUsers.rejected, (state, action) => {
         state.loading = false;

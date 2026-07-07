@@ -13,7 +13,7 @@ export interface DisputeItem {
 }
 
 export const fetchDisputes = createAsyncThunk("disputes/fetchDisputes", async () => {
-  return await api.dashboard.getDisputes();
+  return await api.support.getAll();
 });
 
 export const resolveDispute = createAsyncThunk(
@@ -57,26 +57,34 @@ const disputesSlice = createSlice({
       .addCase(fetchDisputes.fulfilled, (state, action) => {
         state.loading = false;
         state.items = (action.payload || []).map((d: any, idx: number) => {
-          const colors = ["bg-blue-500", "bg-teal-500", "bg-purple-500", "bg-rose-500"];
-          const usersInvolved = d.usersInvolved || [];
-          const usersMapped = usersInvolved.map((u: any, i: number) => {
-            const name = typeof u === "string" ? u : (u.name || "User");
-            return {
-              name,
-              color: colors[i % colors.length],
-              initial: name.charAt(0).toUpperCase(),
-            };
-          });
+          const reporterName = d.userId?.fullName || d.userId?.name || "Reporter";
+          const reportedName = d.reportedUser?.fullName || d.reportedUser?.name || "Seller";
+          const usersMapped = [
+            { name: reporterName, color: "bg-blue-500", initial: reporterName.charAt(0).toUpperCase() },
+            { name: reportedName, color: "bg-teal-500", initial: reportedName.charAt(0).toUpperCase() }
+          ];
+
+          const displayStatus = d.status === "pending" || d.status === "Open"
+            ? "Open"
+            : (d.status === "under_review" || d.status === "Reviewing" ? "Reviewing" : (d.status === "solved" || d.status === "Resolved" ? "Resolved" : "Rejected"));
+
+          const displayPriority = d.priority
+            ? (d.priority.charAt(0).toUpperCase() + d.priority.slice(1))
+            : "Medium";
+
+          const formattedDate = d.createdAt
+            ? new Date(d.createdAt).toISOString().split("T")[0]
+            : "-";
 
           return {
-            id: d.id || d.disputeId || "",
-            status: d.status || "Open",
-            priority: d.priority || d.severity || "Medium",
-            date: d.date || d.openedOn || "",
-            users: d.users || usersMapped,
-            targetId: d.targetId || d.orderOrTradeId || "",
-            issueType: d.issueType || "Dispute",
-            description: d.description || "",
+            id: d._id || d.id || d.disputeId || "",
+            status: displayStatus,
+            priority: displayPriority,
+            date: formattedDate,
+            users: usersMapped,
+            targetId: d.contentId || d.orderOrTradeId || "-",
+            issueType: d.subject || (d.reason === "fraud" ? "Item not as described" : "Wrong item received"),
+            description: d.message || "Defects or trade matching issues reported",
           };
         });
       })

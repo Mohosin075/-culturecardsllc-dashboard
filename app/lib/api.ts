@@ -214,6 +214,9 @@ class ApiClient {
 
   // --- User Management ---
   public users = {
+    getAll: () =>
+      this.request<any>("/users", { method: "GET" }),
+
     updateStatus: (userId: string, status: string) =>
       this.request<any>(`/users/${userId}`, {
         method: "PATCH",
@@ -232,6 +235,9 @@ class ApiClient {
 
   // --- Product / Listing Management ---
   public products = {
+    getAll: () =>
+      this.request<any>("/products", { method: "GET" }),
+
     update: (productId: string, data: { isFeatured?: boolean }) =>
       this.request<any>(`/products/${productId}`, {
         method: "PATCH",
@@ -244,6 +250,9 @@ class ApiClient {
 
   // --- Support / Disputes ---
   public support = {
+    getAll: () =>
+      this.request<any>("/support", { method: "GET" }),
+
     updateStatus: (supportId: string, status: string, feedback: string) =>
       this.request<any>(`/support/${supportId}`, {
         method: "PATCH",
@@ -253,6 +262,9 @@ class ApiClient {
 
   // --- Categories ---
   public categories = {
+    getAll: () =>
+      this.request<any>("/category", { method: "GET" }),
+
     create: (name: string, description: string) =>
       this.request<any>("/category", {
         method: "POST",

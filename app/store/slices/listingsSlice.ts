@@ -13,7 +13,7 @@ export interface Listing {
 }
 
 export const fetchListings = createAsyncThunk("listings/fetchListings", async () => {
-  return await api.dashboard.getListings();
+  return await api.products.getAll();
 });
 
 export const deleteListing = createAsyncThunk("listings/deleteListing", async (id: string) => {
@@ -53,16 +53,27 @@ const listingsSlice = createSlice({
       })
       .addCase(fetchListings.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = (action.payload || []).map((item: any) => ({
-          id: item.id || item.listingId || "",
-          seller: item.seller || "Seller",
-          item: item.item || item.itemName || "Collector Item",
-          price: typeof item.price === "number" ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(item.price) : (item.price || ""),
-          category: item.category || "",
-          views: item.views !== undefined ? item.views : 0,
-          status: item.status || "Live",
-          boosted: item.boosted !== undefined ? item.boosted : (item.isBoosted || false),
-        }));
+        state.items = (action.payload || []).map((item: any, idx: number) => {
+          const sellerName = item.sellerId?.fullName || item.sellerId?.name || item.seller || "Seller";
+          const rawPrice = item.buyNowPrice || item.estValue || item.startingBid || item.price || 0;
+          const formattedPrice = typeof rawPrice === "number"
+            ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(rawPrice)
+            : String(rawPrice);
+          const displayStatus = item.status === "active" || item.status === "pending" || item.status === "Live"
+            ? "Live"
+            : (item.status === "sold" || item.status === "Sold" ? "Sold" : "Removed");
+
+          return {
+            id: item._id || item.id || item.listingId || "",
+            seller: sellerName,
+            item: item.title || item.itemName || "Collector Item",
+            price: formattedPrice,
+            category: item.category || "",
+            views: item.views !== undefined ? item.views : 0,
+            status: displayStatus,
+            boosted: item.isFeatured !== undefined ? item.isFeatured : (item.boosted || false),
+          };
+        });
       })
       .addCase(fetchListings.rejected, (state, action) => {
         state.loading = false;

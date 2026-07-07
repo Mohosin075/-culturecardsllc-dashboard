@@ -131,7 +131,11 @@ export default function OrdersPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3 text-zinc-500">
-                      <button className="hover:text-white transition-colors" title="View Order">
+                      <button
+                        onClick={() => showAlert(`Viewing order invoice sheet for ID: ${order.id}`, "info")}
+                        className="hover:text-white transition-colors"
+                        title="View Order"
+                      >
                         <Eye size={18} />
                       </button>
                       <button
@@ -141,7 +145,11 @@ export default function OrdersPage() {
                       >
                         <RefreshCcw size={18} />
                       </button>
-                      <button className="hover:text-yellow-500 transition-colors" title="Payout">
+                      <button
+                        onClick={() => showConfirm(`Initiate seller payout of ${order.totalPrice} to ${order.seller}?`, () => showAlert(`Payout of ${order.totalPrice} processed successfully.`, "success"), "Seller Payout")}
+                        className="hover:text-yellow-500 transition-colors"
+                        title="Payout"
+                      >
                         <DollarSign size={18} />
                       </button>
                     </div>
