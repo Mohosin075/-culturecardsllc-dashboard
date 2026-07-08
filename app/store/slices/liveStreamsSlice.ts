@@ -1,17 +1,7 @@
+"use client";
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { api } from "@/app/lib/api";
-
-export const fetchLiveStreams = createAsyncThunk("liveStreams/fetchLiveStreams", async () => {
-  return await api.dashboard.getLiveStreams();
-});
-
-// No backend endpoint for cancelling a scheduled stream — local state only
-export const cancelScheduledStream = createAsyncThunk(
-  "liveStreams/cancelScheduledStream",
-  async (id: string) => {
-    return id;
-  }
-);
 
 export interface LiveStream {
   id: string;
@@ -32,6 +22,60 @@ export interface ScheduledStream {
   category: string;
   time: string;
 }
+
+interface RawLiveStream {
+  id?: string;
+  _id?: string;
+  streamId?: string;
+  title?: string;
+  seller?: string;
+  host?: string;
+  hostName?: string;
+  category?: string;
+  viewers?: number;
+  viewerCount?: number;
+  viewersCount?: number;
+  likes?: number;
+  likesCount?: number;
+  chatMessages?: Array<{ id?: string; _id?: string; user?: string; text?: string; message?: string }>;
+  duration?: string;
+  thumbnail?: string;
+}
+
+interface RawScheduledStream {
+  id?: string;
+  _id?: string;
+  streamId?: string;
+  title?: string;
+  seller?: string;
+  host?: string;
+  hostName?: string;
+  category?: string;
+  time?: string;
+  scheduledTime?: string;
+  scheduledAt?: string;
+  startTime?: string;
+}
+
+export interface FetchLiveStreamsResponse {
+  currentlyLive?: RawLiveStream[];
+  live?: RawLiveStream[];
+  active?: RawLiveStream[];
+  scheduled?: RawScheduledStream[];
+  upcoming?: RawScheduledStream[];
+}
+
+export const fetchLiveStreams = createAsyncThunk("liveStreams/fetchLiveStreams", async () => {
+  return await api.dashboard.getLiveStreams() as FetchLiveStreamsResponse;
+});
+
+// No backend endpoint for cancelling a scheduled stream — local state only
+export const cancelScheduledStream = createAsyncThunk(
+  "liveStreams/cancelScheduledStream",
+  async (id: string) => {
+    return id;
+  }
+);
 
 interface LiveStreamsState {
   live: LiveStream[];
@@ -61,15 +105,15 @@ const liveStreamsSlice = createSlice({
       })
       .addCase(fetchLiveStreams.fulfilled, (state, action) => {
         state.loading = false;
-        const payload = action.payload as any;
-        state.live = (payload?.currentlyLive || payload?.live || payload?.active || []).map((s: any) => ({
+        const payload = action.payload;
+        state.live = (payload?.currentlyLive || payload?.live || payload?.active || []).map((s: RawLiveStream) => ({
           id: s.id || s._id || s.streamId || "",
           title: s.title || "Live Stream",
           seller: s.seller || s.host || s.hostName || "Seller",
           category: s.category || "",
           viewers: s.viewers || s.viewerCount || s.viewersCount || 0,
           likes: s.likes || s.likesCount || 0,
-          chatMessages: (s.chatMessages || []).map((msg: any) => ({
+          chatMessages: (s.chatMessages || []).map((msg) => ({
             id: msg.id || msg._id || Math.random().toString(),
             user: msg.user || "User",
             text: msg.text || msg.message || ""
@@ -77,7 +121,7 @@ const liveStreamsSlice = createSlice({
           duration: s.duration || "—",
           thumbnail: s.thumbnail || "",
         }));
-        state.scheduled = (payload?.scheduled || payload?.upcoming || []).map((s: any) => ({
+        state.scheduled = (payload?.scheduled || payload?.upcoming || []).map((s: RawScheduledStream) => ({
           id: s.id || s._id || s.streamId || "",
           title: s.title || "Scheduled Stream",
           seller: s.seller || s.host || s.hostName || "Seller",

@@ -1,3 +1,5 @@
+"use client";
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { api } from "@/app/lib/api";
 
@@ -13,8 +15,23 @@ export interface User {
   color?: string;
 }
 
+interface RawUser {
+  _id?: string;
+  userId?: string;
+  id?: string;
+  fullName?: string;
+  name?: string;
+  username?: string;
+  email?: string;
+  role?: string;
+  roles?: string[];
+  rating?: number;
+  transactions?: number;
+  status?: string;
+}
+
 export const fetchUsers = createAsyncThunk("users/fetchUsers", async () => {
-  return await api.users.getAll();
+  return await api.users.getAll() as RawUser[];
 });
 
 export const updateUserStatus = createAsyncThunk(
@@ -55,7 +72,7 @@ const usersSlice = createSlice({
       })
       .addCase(fetchUsers.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = (action.payload || []).map((user: any, idx: number) => {
+        state.items = (action.payload || []).map((user: RawUser, idx: number) => {
           const usernameStr = user.email
             ? `@${user.email.split("@")[0]}`
             : `@user${idx + 1}`;

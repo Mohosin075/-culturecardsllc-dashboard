@@ -56,7 +56,10 @@ const disputesSlice = createSlice({
       })
       .addCase(fetchDisputes.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = (action.payload || []).map((d: any, idx: number) => {
+        const payloadData = Array.isArray(action.payload)
+          ? action.payload
+          : (action.payload as any)?.data || [];
+        state.items = payloadData.map((d: any) => {
           const reporterName = d.userId?.fullName || d.userId?.name || "Reporter";
           const reportedName = d.reportedUser?.fullName || d.reportedUser?.name || "Seller";
           const usersMapped = [
