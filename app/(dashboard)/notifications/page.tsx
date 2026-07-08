@@ -93,57 +93,71 @@ export default function NotificationsPage() {
 
       {/* Notifications List */}
       <div className="space-y-3">
-        {notifications.map((notif) => {
-          const Icon = getIconByType(notif.type);
-          const colorClass = getColorByType(notif.type);
-          return (
-            <div
-              key={notif.id}
-              className={`group relative p-4 bg-[#111111] border rounded-2xl transition-all duration-200 ${
-                notif.isUnread 
-                  ? "border-blue-500/30 shadow-lg shadow-blue-500/5" 
-                  : "border-white/5 hover:border-white/10"
-              }`}
-            >
-              <div className="flex gap-4">
-                {/* Icon */}
-                <div className={`w-10 h-10 ${colorClass} rounded-lg flex items-center justify-center text-white shrink-0`}>
-                  <Icon size={20} />
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-zinc-100">{notif.title}</h3>
-                      {notif.isUnread && (
-                        <div className="w-2 h-2 rounded-full bg-blue-500" />
-                      )}
-                    </div>
-                    <span className="text-xs text-zinc-500">{notif.time}</span>
-                  </div>
-                  <p className="text-xs text-zinc-500 font-medium mt-0.5">{notif.category}</p>
-                  <p className="text-sm text-zinc-400 mt-2 line-clamp-2">
-                    {notif.content}
-                  </p>
-                </div>
-
-                {/* Hover Actions */}
-                {notif.isUnread && (
-                  <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => handleMarkSingleRead(notif.id)}
-                      className="p-2 hover:bg-white/5 rounded-full text-zinc-500 hover:text-zinc-300"
-                      title="Mark as Read"
-                    >
-                      <CheckCircle2 size={18} />
-                    </button>
-                  </div>
-                )}
-              </div>
+        {notifications.length === 0 ? (
+          <div className="bg-[#111111] border border-white/5 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center text-zinc-500">
+              <Bell size={32} />
             </div>
-          );
-        })}
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-zinc-200">No Notifications</h3>
+              <p className="text-sm text-zinc-500 max-w-sm">
+                You do not have any notifications right now.
+              </p>
+            </div>
+          </div>
+        ) : (
+          notifications.map((notif) => {
+            const Icon = getIconByType(notif.type);
+            const colorClass = getColorByType(notif.type);
+            return (
+              <div
+                key={notif.id}
+                className={`group relative p-4 bg-[#111111] border rounded-2xl transition-all duration-200 ${
+                  notif.isUnread 
+                    ? "border-blue-500/30 shadow-lg shadow-blue-500/5" 
+                    : "border-white/5 hover:border-white/10"
+                }`}
+              >
+                <div className="flex gap-4">
+                  {/* Icon */}
+                  <div className={`w-10 h-10 ${colorClass} rounded-lg flex items-center justify-center text-white shrink-0`}>
+                    <Icon size={20} />
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-zinc-100">{notif.title}</h3>
+                        {notif.isUnread && (
+                          <div className="w-2 h-2 rounded-full bg-blue-500" />
+                        )}
+                      </div>
+                      <span className="text-xs text-zinc-500">{notif.time}</span>
+                    </div>
+                    <p className="text-xs text-zinc-500 font-medium mt-0.5">{notif.category}</p>
+                    <p className="text-sm text-zinc-400 mt-2 line-clamp-2">
+                      {notif.content}
+                    </p>
+                  </div>
+
+                  {/* Hover Actions */}
+                  {notif.isUnread && (
+                    <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => handleMarkSingleRead(notif.id)}
+                        className="p-2 hover:bg-white/5 rounded-full text-zinc-500 hover:text-zinc-300 cursor-pointer"
+                        title="Mark as Read"
+                      >
+                        <CheckCircle2 size={18} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

@@ -66,7 +66,10 @@ const categoriesSlice = createSlice({
       })
       .addCase(fetchCategories.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = (action.payload || []).map((cat: any, idx: number) => ({
+        const payloadData = Array.isArray(action.payload)
+          ? action.payload
+          : (action.payload as any)?.data || [];
+        state.items = payloadData.map((cat: any, idx: number) => ({
           ...cat,
           id: cat._id || cat.id || cat.categoryId || `CAT-${(idx + 1).toString().padStart(3, '0')}`,
           count: cat.count !== undefined ? cat.count : (cat.listingsCount || 0),

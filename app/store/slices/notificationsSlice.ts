@@ -11,7 +11,7 @@ export const fetchNotifications = createAsyncThunk(
 export const markAllNotificationsRead = createAsyncThunk(
   "notifications/markAllNotificationsRead",
   async () => {
-    await api.notifications.markAllRead();
+    await api.dashboard.markNotificationsRead();
   }
 );
 
