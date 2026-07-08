@@ -19,6 +19,8 @@ export interface LiveStream {
   seller: string;
   category: string;
   viewers: number;
+  likes: number;
+  chatMessages: Array<{ id: string; user: string; text: string }>;
   duration: string;
   thumbnail?: string;
 }
@@ -52,18 +54,26 @@ const liveStreamsSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchLiveStreams.pending, (state) => {
-        state.loading = true;
+        if (state.live.length === 0 && state.scheduled.length === 0) {
+          state.loading = true;
+        }
         state.error = null;
       })
       .addCase(fetchLiveStreams.fulfilled, (state, action) => {
         state.loading = false;
         const payload = action.payload as any;
-        state.live = (payload?.live || payload?.active || []).map((s: any) => ({
+        state.live = (payload?.currentlyLive || payload?.live || payload?.active || []).map((s: any) => ({
           id: s.id || s._id || s.streamId || "",
           title: s.title || "Live Stream",
           seller: s.seller || s.host || s.hostName || "Seller",
           category: s.category || "",
-          viewers: s.viewers || s.viewerCount || 0,
+          viewers: s.viewers || s.viewerCount || s.viewersCount || 0,
+          likes: s.likes || s.likesCount || 0,
+          chatMessages: (s.chatMessages || []).map((msg: any) => ({
+            id: msg.id || msg._id || Math.random().toString(),
+            user: msg.user || "User",
+            text: msg.text || msg.message || ""
+          })),
           duration: s.duration || "—",
           thumbnail: s.thumbnail || "",
         }));
@@ -72,7 +82,7 @@ const liveStreamsSlice = createSlice({
           title: s.title || "Scheduled Stream",
           seller: s.seller || s.host || s.hostName || "Seller",
           category: s.category || "",
-          time: s.time || s.scheduledAt || s.startTime || "",
+          time: s.time || s.scheduledTime || s.scheduledAt || s.startTime || "",
         }));
       })
       .addCase(fetchLiveStreams.rejected, (state, action) => {
