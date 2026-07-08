@@ -11,6 +11,7 @@ export default function TradesPage() {
   const dispatch = useAppDispatch();
   const { items: trades, loading } = useAppSelector((state) => state.trades);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const { showAlert, showConfirm } = useAlert();
 
   useEffect(() => {
@@ -141,7 +142,11 @@ export default function TradesPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3 text-zinc-500">
-                      <button className="hover:text-white transition-colors" title="View Swap Info">
+                      <button
+                        onClick={() => setSelectedTrade(trade)}
+                        className="hover:text-white transition-colors"
+                        title="View Swap Info"
+                      >
                         <Eye size={18} />
                       </button>
                       <button
@@ -159,6 +164,69 @@ export default function TradesPage() {
           </table>
         </div>
       </div>
+
+      {/* Trade details Modal */}
+      {selectedTrade && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/85 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setSelectedTrade(null)}
+          />
+
+          <div className="relative w-full max-w-lg bg-[#111111] border border-white/10 rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-8 space-y-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">BidSwap Details</h2>
+                  <p className="text-zinc-500 text-sm mt-1">Direct item exchange statistics</p>
+                </div>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                    selectedTrade.status === "Completed" || selectedTrade.status === "Accepted"
+                      ? "bg-green-500/10 text-green-500 border-green-500/20"
+                      : selectedTrade.status === "Pending"
+                      ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
+                      : "bg-red-500/10 text-red-500 border-red-500/20"
+                  }`}
+                >
+                  {selectedTrade.status}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 p-4 bg-black/40 border border-white/5 rounded-2xl">
+                <div>
+                  <span className="text-xs text-zinc-500 uppercase tracking-wider block">Trade ID</span>
+                  <span className="text-sm font-mono text-zinc-300 block mt-1">{selectedTrade.id}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-zinc-500 uppercase tracking-wider block">Supplement Cash</span>
+                  <span className="text-sm font-medium text-green-500 block mt-1">{selectedTrade.supplement || "$0"}</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-500/5 border border-blue-500/10 rounded-2xl space-y-2">
+                  <span className="text-xs text-blue-400 uppercase tracking-wider block font-bold">Sender Offer ({selectedTrade.sender})</span>
+                  <span className="text-sm text-zinc-300 font-medium block">{selectedTrade.senderProduct}</span>
+                </div>
+                <div className="p-4 bg-teal-500/5 border border-teal-500/10 rounded-2xl space-y-2">
+                  <span className="text-xs text-teal-400 uppercase tracking-wider block font-bold">Receiver Demand ({selectedTrade.receiver})</span>
+                  <span className="text-sm text-zinc-300 font-medium block">{selectedTrade.receiverProduct}</span>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4 border-t border-white/5">
+                <button
+                  onClick={() => setSelectedTrade(null)}
+                  className="px-6 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-white/5 text-zinc-300 rounded-xl text-sm font-semibold transition-all active:scale-95"
+                >
+                  Close Overview
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

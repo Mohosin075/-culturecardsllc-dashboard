@@ -46,6 +46,8 @@ const initialState: SellerVerificationState = {
   error: null,
 };
 
+const isObjectId = (id: string) => /^[0-9a-fA-F]{24}$/.test(id);
+
 const sellerVerificationSlice = createSlice({
   name: "sellerVerification",
   initialState,
@@ -58,15 +60,17 @@ const sellerVerificationSlice = createSlice({
       })
       .addCase(fetchSellerVerifications.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = (action.payload || []).map((req: any) => ({
-          id: req.id || req.requestId || "",
-          name: req.name || "",
-          email: req.email || "",
-          status: req.status || "Pending",
-          category: req.category || "",
-          submitted: req.submitted || "",
-          documents: req.documents || req.submittedDocuments || [],
-        }));
+        state.items = (action.payload || [])
+          .filter((req: any) => isObjectId(req.id))
+          .map((req: any) => ({
+            id: req.id,
+            name: req.name || "",
+            email: req.email || "",
+            status: req.status || "Pending",
+            category: req.category || "",
+            submitted: req.submitted || "",
+            documents: req.documents || req.submittedDocuments || [],
+          }));
       })
       .addCase(fetchSellerVerifications.rejected, (state, action) => {
         state.loading = false;
