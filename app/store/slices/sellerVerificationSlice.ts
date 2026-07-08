@@ -29,7 +29,7 @@ export const approveVerification = createAsyncThunk(
 export const rejectVerification = createAsyncThunk(
   "sellerVerification/rejectVerification",
   async (id: string) => {
-    await api.users.update(id, { verified: false });
+    await api.users.update(id, { verified: false, status: "inactive" });
     return id;
   }
 );
