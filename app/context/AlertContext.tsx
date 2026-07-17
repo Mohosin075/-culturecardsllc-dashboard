@@ -76,12 +76,12 @@ export default function AlertProvider({ children }: { children: React.ReactNode 
       title,
       message,
       onConfirm: () => {
-        onConfirm();
         setConfirmState((prev) => ({ ...prev, isOpen: false }));
+        setTimeout(() => onConfirm(), 50);
       },
       onCancel: () => {
-        if (onCancel) onCancel();
         setConfirmState((prev) => ({ ...prev, isOpen: false }));
+        if (onCancel) setTimeout(() => onCancel(), 50);
       },
     });
   };
@@ -99,8 +99,8 @@ export default function AlertProvider({ children }: { children: React.ReactNode 
       placeholder,
       defaultValue,
       onSubmit: (val) => {
-        onSubmit(val);
         setPromptState((prev) => ({ ...prev, isOpen: false }));
+        setTimeout(() => onSubmit(val), 50);
       },
     });
   };

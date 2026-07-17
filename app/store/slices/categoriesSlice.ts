@@ -37,7 +37,6 @@ export interface Category {
   name: string;
   count: number;
   iconName: string;
-  subcategories: string[];
   description?: string;
 }
 
@@ -74,7 +73,6 @@ const categoriesSlice = createSlice({
           id: cat._id || cat.id || cat.categoryId || `CAT-${(idx + 1).toString().padStart(3, '0')}`,
           count: cat.count !== undefined ? cat.count : (cat.listingsCount || 0),
           iconName: cat.iconName || (cat.name === "Sneakers" ? "Footprints" : (cat.name === "Trading Cards" || cat.name === "Cards" ? "Cards" : (cat.name === "Watches" ? "Watch" : (cat.name === "Tech" ? "Laptop" : "Cards")))),
-          subcategories: cat.subcategories || [],
           description: cat.description || "",
         }));
       })
@@ -86,11 +84,10 @@ const categoriesSlice = createSlice({
       .addCase(addCategory.fulfilled, (state, action) => {
         const newCat = action.payload;
         state.items.push({
-          id: newCat.id || `CAT-00${state.items.length + 1}`,
+          id: newCat._id || newCat.id || `CAT-00${state.items.length + 1}`,
           name: newCat.name,
           count: 0,
           iconName: "Cards",
-          subcategories: [],
           description: newCat.description || "",
         });
       })

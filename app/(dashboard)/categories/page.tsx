@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { Plus, Edit2, Trash2, ChevronRight, Laptop, Watch, Layers as Cards, Footprints, Loader2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Plus, Edit2, Trash2, ChevronRight, Laptop, Watch, Layers as Cards, Footprints, Loader2, X } from "lucide-react";
 
 
 const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
@@ -29,35 +29,68 @@ import ErrorState from "@/app/components/ErrorState";
 export default function CategoriesPage() {
   const dispatch = useAppDispatch();
   const { items: categories, loading } = useAppSelector((state) => state.categories);
-  const { showAlert, showConfirm, showPrompt } = useAlert();
+  const { showAlert, showConfirm } = useAlert();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"add" | "edit">("add");
+  const [editId, setEditId] = useState<string | null>(null);
+  const [formData, setFormData] = useState({ name: "", description: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     dispatch(fetchCategories());
   }, [dispatch]);
 
-  const handleAddCategory = () => {
-    showPrompt("Add Category Name", "Category Name (e.g. Rare Coins)", (name) => {
-      if (!name) return;
-      showPrompt("Add Category Description", "Category Description", (description) => {
-        dispatch(addCategory({ name, description: description || "" }));
-        showAlert("Category added successfully.", "success");
-      });
-    });
+  const handleAddClick = () => {
+    setModalMode("add");
+    setEditId(null);
+    setFormData({ name: "", description: "" });
+    setModalOpen(true);
   };
 
-  const handleEditCategory = (id: string, currentDesc: string) => {
-    showPrompt("Edit Category Description", "Description", (description) => {
-      dispatch(editCategory({ id, description }));
-      showAlert("Category updated successfully.", "success");
-    }, currentDesc);
+  const handleEditClick = (category: Category) => {
+    setModalMode("edit");
+    setEditId(category.id);
+    setFormData({ name: category.name, description: category.description || "" });
+    setModalOpen(true);
+  };
+
+  const handleModalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim()) {
+      showAlert("Category name is required", "error");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      if (modalMode === "add") {
+        await dispatch(addCategory({ name: formData.name, description: formData.description })).unwrap();
+        showAlert("Category added successfully.", "success");
+      } else if (modalMode === "edit" && editId) {
+        await dispatch(editCategory({ id: editId, description: formData.description })).unwrap();
+        // The backend also allows updating name if needed, but our current API thunk only sends description. 
+        // We can update the thunk later if name edit is needed, but for now we follow the existing behavior.
+        showAlert("Category updated successfully.", "success");
+      }
+      setModalOpen(false);
+    } catch (error: any) {
+      showAlert(error?.message || `Failed to ${modalMode} category`, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDeleteCategory = (id: string) => {
     showConfirm(
-      "Are you sure you want to delete this category? All associated subcategories will be removed.",
-      () => {
-        dispatch(deleteCategory(id));
-        showAlert("Category deleted successfully.", "success");
+      "Are you sure you want to delete this category?",
+      async () => {
+        try {
+          await dispatch(deleteCategory(id)).unwrap();
+          showAlert("Category deleted successfully.", "success");
+        } catch (error: any) {
+          showAlert(error?.message || "Failed to delete category", "error");
+        }
       },
       "Delete Category"
     );
@@ -82,7 +115,7 @@ export default function CategoriesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-semibold text-white">Categories Management</h1>
         <button
-          onClick={handleAddCategory}
+          onClick={handleAddClick}
           className="bg-[#155DFC] hover:bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-blue-500/20"
         >
           <Plus size={18} />
@@ -122,9 +155,9 @@ export default function CategoriesPage() {
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => handleEditCategory(category.id, category.description || "")}
+                      onClick={() => handleEditClick(category)}
                       className="p-2 hover:bg-white/5 rounded-lg text-zinc-500 hover:text-white transition-colors cursor-pointer"
-                      title="Edit Description"
+                      title="Edit Category"
                     >
                       <Edit2 size={18} />
                     </button>
@@ -138,39 +171,86 @@ export default function CategoriesPage() {
                   </div>
                 </div>
 
-                {/* Subcategories */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Subcategories</h3>
-                    <button className="text-[#155DFC] hover:text-blue-400 text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer">
-                      <Plus size={14} />
-                      Add
-                    </button>
+                {category.description && (
+                  <div className="text-sm text-zinc-400">
+                    {category.description}
                   </div>
-                  <div className="space-y-2">
-                    {category.subcategories?.map((sub: string, i: number) => (
-                      <div key={i} className="flex items-center justify-between p-3 bg-black/40 border border-white/5 rounded-xl group hover:border-white/10 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <ChevronRight size={14} className="text-zinc-600 group-hover:text-zinc-400 transition-colors" />
-                          <span className="text-sm font-medium text-zinc-300">{sub}</span>
-                        </div>
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="p-1.5 hover:bg-white/5 rounded text-zinc-500 hover:text-white transition-colors cursor-pointer">
-                            <Edit2 size={14} />
-                          </button>
-                          <button className="p-1.5 hover:bg-red-500/10 rounded text-zinc-500 hover:text-red-500 transition-colors cursor-pointer">
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                )}
               </div>
             );
           })
         )}
       </div>
+
+      {/* Custom Category Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+            onClick={() => !isSubmitting && setModalOpen(false)}
+          />
+          <div className="relative w-full max-w-md bg-[#111111]/90 border border-white/10 rounded-3xl shadow-2xl p-6 space-y-6 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-white">
+                {modalMode === "add" ? "Add New Category" : "Edit Category"}
+              </h3>
+              <button 
+                onClick={() => setModalOpen(false)}
+                disabled={isSubmitting}
+                className="text-zinc-500 hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleModalSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-400">Category Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Rare Coins"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  disabled={isSubmitting || modalMode === "edit"} // Disabling name edit if we only support description edits right now, or we can enable it!
+                  className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-zinc-200 focus:outline-none focus:border-[#155DFC] transition-colors disabled:opacity-50"
+                  autoFocus
+                />
+                {modalMode === "edit" && <p className="text-xs text-zinc-500 mt-1">Name cannot be changed currently.</p>}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-400">Category Description</label>
+                <textarea
+                  placeholder="Describe this category..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  disabled={isSubmitting}
+                  rows={4}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-zinc-200 focus:outline-none focus:border-[#155DFC] transition-colors resize-none disabled:opacity-50"
+                />
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4">
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(false)}
+                  disabled={isSubmitting}
+                  className="px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-white/5 text-zinc-400 hover:text-zinc-200 rounded-xl text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !formData.name.trim()}
+                  className="px-5 py-2.5 bg-[#155DFC] hover:bg-blue-600 text-white rounded-xl text-sm font-semibold transition-all active:scale-95 shadow-lg shadow-[#155DFC]/20 flex items-center justify-center min-w-[100px] disabled:opacity-50"
+                >
+                  {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : (modalMode === "add" ? "Create" : "Save Changes")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
