@@ -1,0 +1,15 @@
+📊 ২. এডমিন ড্যাশবোর্ড ইন্টিগ্রেশন (Admin Dashboard Actions)
+এডমিন প্যানেলে নিচের নতুন অ্যাকশন বাটনগুলোর সাথে এন্ডপয়েন্টগুলো ম্যাপ করতে হবে:
+
+ক) সেলার ভেরিফিকেশন (Seller Verification Request)
+Approve Button:
+API: PATCH /dashboard/seller-verifications/:userId/approve
+Reject Button:
+API: PATCH /dashboard/seller-verifications/:userId/reject
+Payload: { "reason": "Document not clear" }
+খ) ডিসপ্যুট রেজোলিউশন (Dispute Resolution)
+Resolve Button:
+API: PATCH /dashboard/disputes/:id/resolve (এখানে :id হলো Dispute/Support ID)
+Reject Button:
+API: PATCH /dashboard/disputes/:id/reject
+Payload: { "reason": "Dispute rejected by moderator" }

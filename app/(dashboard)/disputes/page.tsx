@@ -20,7 +20,7 @@ export default function DisputesPage() {
   const dispatch = useAppDispatch();
   const { items: disputes, loading } = useAppSelector((state) => state.disputes);
   const [selectedDispute, setSelectedDispute] = useState<DisputeItem | null>(null);
-  const { showAlert, showConfirm } = useAlert();
+  const { showAlert, showConfirm, showPrompt } = useAlert();
 
   useEffect(() => {
     dispatch(fetchDisputes());
@@ -38,13 +38,14 @@ export default function DisputesPage() {
   };
 
   const handleReject = async (disputeId: string) => {
-    showConfirm(
-      `Are you sure you want to reject dispute ${disputeId}?`,
-      () => {
-        dispatch(rejectDispute(disputeId));
+    showPrompt(
+      "Reject Dispute",
+      "Enter reason for rejection",
+      (reason) => {
+        dispatch(rejectDispute({ id: disputeId, reason }));
         showAlert("Dispute rejected.", "info");
       },
-      "Reject Dispute"
+      "Dispute rejected by moderator"
     );
   };
 

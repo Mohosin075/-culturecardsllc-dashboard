@@ -15,7 +15,7 @@ import ErrorState from "@/app/components/ErrorState";
 export default function SellerVerificationPage() {
   const dispatch = useAppDispatch();
   const { items: requests, loading } = useAppSelector((state) => state.sellerVerification);
-  const { showAlert, showConfirm } = useAlert();
+  const { showAlert, showConfirm, showPrompt } = useAlert();
 
   useEffect(() => {
     dispatch(fetchSellerVerifications());
@@ -33,13 +33,14 @@ export default function SellerVerificationPage() {
   };
 
   const handleReject = async (id: string) => {
-    showConfirm(
-      "Are you sure you want to reject this seller verification request?",
-      () => {
-        dispatch(rejectVerification(id));
+    showPrompt(
+      "Reject Seller Verification",
+      "Enter reason for rejection",
+      (reason) => {
+        dispatch(rejectVerification({ id, reason }));
         showAlert("Verification request rejected.", "info");
       },
-      "Reject Seller"
+      "Document not clear"
     );
   };
 

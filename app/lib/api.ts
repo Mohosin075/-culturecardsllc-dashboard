@@ -169,6 +169,15 @@ class ApiClient {
     getSellerVerifications: () =>
       this.request<any>("/dashboard/seller-verifications", { method: "GET" }),
 
+    approveSellerVerification: (userId: string) =>
+      this.request<any>(`/dashboard/seller-verifications/${userId}/approve`, { method: "PATCH" }),
+
+    rejectSellerVerification: (userId: string, reason: string) =>
+      this.request<any>(`/dashboard/seller-verifications/${userId}/reject`, {
+        method: "PATCH",
+        body: JSON.stringify({ reason }),
+      }),
+
     getListings: () =>
       this.request<any>("/dashboard/listings", { method: "GET" }),
 
@@ -183,6 +192,15 @@ class ApiClient {
 
     getDisputes: () =>
       this.request<any>("/dashboard/disputes", { method: "GET" }),
+
+    resolveDispute: (id: string) =>
+      this.request<any>(`/dashboard/disputes/${id}/resolve`, { method: "PATCH" }),
+
+    rejectDispute: (id: string, reason: string) =>
+      this.request<any>(`/dashboard/disputes/${id}/reject`, {
+        method: "PATCH",
+        body: JSON.stringify({ reason }),
+      }),
 
     getPayments: () =>
       this.request<any>("/dashboard/payments", { method: "GET" }),

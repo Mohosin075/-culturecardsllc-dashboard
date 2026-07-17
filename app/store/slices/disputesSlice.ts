@@ -19,15 +19,15 @@ export const fetchDisputes = createAsyncThunk("disputes/fetchDisputes", async ()
 export const resolveDispute = createAsyncThunk(
   "disputes/resolveDispute",
   async (id: string) => {
-    await api.support.updateStatus(id, "solved", "Resolved by Admin intervention.");
+    await api.dashboard.resolveDispute(id);
     return id;
   }
 );
 
 export const rejectDispute = createAsyncThunk(
   "disputes/rejectDispute",
-  async (id: string) => {
-    await api.support.updateStatus(id, "dismissed", "Rejected by Admin intervention.");
+  async ({ id, reason }: { id: string; reason: string }) => {
+    await api.dashboard.rejectDispute(id, reason);
     return id;
   }
 );

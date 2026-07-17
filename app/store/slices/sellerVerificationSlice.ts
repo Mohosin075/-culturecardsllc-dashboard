@@ -21,15 +21,15 @@ export const fetchSellerVerifications = createAsyncThunk(
 export const approveVerification = createAsyncThunk(
   "sellerVerification/approveVerification",
   async (id: string) => {
-    await api.users.update(id, { verified: true });
+    await api.dashboard.approveSellerVerification(id);
     return id;
   }
 );
 
 export const rejectVerification = createAsyncThunk(
   "sellerVerification/rejectVerification",
-  async (id: string) => {
-    await api.users.update(id, { verified: false, status: "inactive" });
+  async ({ id, reason }: { id: string; reason: string }) => {
+    await api.dashboard.rejectSellerVerification(id, reason);
     return id;
   }
 );
