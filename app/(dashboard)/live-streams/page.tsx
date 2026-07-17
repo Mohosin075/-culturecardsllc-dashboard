@@ -99,78 +99,90 @@ export default function LiveStreamsPage() {
       </div>
 
       {/* Currently Live Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {liveStreams.map((stream: LiveStream) => (
-          <div key={stream.id} className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden group">
-            {/* Thumbnail Placeholder */}
-            <div className={`aspect-video w-full relative ${stream.thumbnail ?? 'bg-gradient-to-br from-indigo-900 to-blue-900'} flex items-center justify-center`}>
-              <Radio size={48} className="text-white/20 group-hover:scale-110 transition-transform duration-500" />
-              <div className="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 uppercase">
-                <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                Live
-              </div>
-              <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1">
-                <Users size={12} />
-                {stream.viewers}
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-5 space-y-4">
-              <div>
-                <h3 className="font-bold text-zinc-100 line-clamp-1 group-hover:text-[#155DFC] transition-colors">
-                  {stream.title}
-                </h3>
-                <div className="flex items-center gap-2 mt-1 text-zinc-500">
-                  <Users size={14} />
-                  <span className="text-xs">{stream.seller}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-500/20 uppercase">
-                  {stream.category}
-                </span>
-                <div className="flex items-center gap-1 text-zinc-500">
-                  <Clock size={12} />
-                  <span className="text-[10px]">{stream.duration}</span>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setSelectedLiveStream(stream)}
-                  className="flex-1 bg-[#155DFC] hover:bg-blue-600 text-white py-2 rounded-xl text-sm font-bold transition-all active:scale-95 cursor-pointer"
-                >
-                  View Stream
-                </button>
-                <button
-                  onClick={() => handleReportStream(stream.id)}
-                  className={`p-2 rounded-xl transition-all cursor-pointer ${
-                    reportedStreams.includes(stream.id)
-                      ? "bg-red-500/20 text-red-500 border border-red-500/30"
-                      : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200"
-                  }`}
-                  title="Report Live Stream"
-                >
-                  <Flag size={18} className={reportedStreams.includes(stream.id) ? "fill-red-500" : ""} />
-                </button>
-                <button
-                  onClick={() => handleToggleFavorite(stream.id)}
-                  className={`p-2 rounded-xl transition-all cursor-pointer ${
-                    favoritedStreams.includes(stream.id)
-                      ? "bg-yellow-500/20 text-yellow-500 border border-yellow-500/30"
-                      : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200"
-                  }`}
-                  title="Favorite Live Stream"
-                >
-                  <Star size={18} className={favoritedStreams.includes(stream.id) ? "fill-yellow-500" : ""} />
-                </button>
-              </div>
-            </div>
+      {liveStreams.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-16 bg-[#111111] border border-white/5 rounded-3xl text-center space-y-4 max-w-xl mx-auto animate-in fade-in zoom-in-95 duration-200">
+          <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-400 border border-white/10 shadow-inner">
+            <Radio size={28} className="text-zinc-500" />
           </div>
-        ))}
-      </div>
+          <div className="space-y-1">
+            <h3 className="text-xl font-bold text-white">No Live Auctions</h3>
+            <p className="text-zinc-500 text-sm max-w-sm">There are no auctions currently live at this moment.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {liveStreams.map((stream: LiveStream) => (
+            <div key={stream.id} className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden group">
+              {/* Thumbnail Placeholder */}
+              <div className={`aspect-video w-full relative ${stream.thumbnail ?? 'bg-gradient-to-br from-indigo-900 to-blue-900'} flex items-center justify-center`}>
+                <Radio size={48} className="text-white/20 group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 uppercase">
+                  <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  Live
+                </div>
+                <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1">
+                  <Users size={12} />
+                  {stream.viewers}
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-5 space-y-4">
+                <div>
+                  <h3 className="font-bold text-zinc-100 line-clamp-1 group-hover:text-[#155DFC] transition-colors">
+                    {stream.title}
+                  </h3>
+                  <div className="flex items-center gap-2 mt-1 text-zinc-500">
+                    <Users size={14} />
+                    <span className="text-xs">{stream.seller}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-500/20 uppercase">
+                    {stream.category}
+                  </span>
+                  <div className="flex items-center gap-1 text-zinc-500">
+                    <Clock size={12} />
+                    <span className="text-[10px]">{stream.duration}</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSelectedLiveStream(stream)}
+                    className="flex-1 bg-[#155DFC] hover:bg-blue-600 text-white py-2 rounded-xl text-sm font-bold transition-all active:scale-95 cursor-pointer"
+                  >
+                    View Stream
+                  </button>
+                  <button
+                    onClick={() => handleReportStream(stream.id)}
+                    className={`p-2 rounded-xl transition-all cursor-pointer ${
+                      reportedStreams.includes(stream.id)
+                        ? "bg-red-500/20 text-red-500 border border-red-500/30"
+                        : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200"
+                    }`}
+                    title="Report Live Stream"
+                  >
+                    <Flag size={18} className={reportedStreams.includes(stream.id) ? "fill-red-500" : ""} />
+                  </button>
+                  <button
+                    onClick={() => handleToggleFavorite(stream.id)}
+                    className={`p-2 rounded-xl transition-all cursor-pointer ${
+                      favoritedStreams.includes(stream.id)
+                        ? "bg-yellow-500/20 text-yellow-500 border border-yellow-500/30"
+                        : "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200"
+                    }`}
+                    title="Favorite Live Stream"
+                  >
+                    <Star size={18} className={favoritedStreams.includes(stream.id) ? "fill-yellow-500" : ""} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Scheduled Streams */}
       <div className="space-y-6">
@@ -179,59 +191,71 @@ export default function LiveStreamsPage() {
           <h2 className="text-xl font-bold uppercase tracking-widest text-xs">Scheduled Streams</h2>
         </div>
 
-        <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-white/5 text-zinc-500 text-xs uppercase tracking-wider">
-                  <th className="px-6 py-4 font-medium">Stream ID</th>
-                  <th className="px-6 py-4 font-medium">Title</th>
-                  <th className="px-6 py-4 font-medium">Seller</th>
-                  <th className="px-6 py-4 font-medium">Category</th>
-                  <th className="px-6 py-4 font-medium">Scheduled Time</th>
-                  <th className="px-6 py-4 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {scheduledStreams.map((stream: ScheduledStream) => (
-                  <tr key={stream.id} className="text-zinc-300 hover:bg-white/[0.02] transition-colors">
-                    <td className="px-6 py-4 text-xs font-mono text-zinc-500">{stream.id}</td>
-                    <td className="px-6 py-4">
-                      <span className="font-semibold text-zinc-200">{stream.title}</span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-zinc-400">
-                      {stream.seller}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2 py-1 rounded border border-blue-500/20 uppercase">
-                        {stream.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-zinc-400 font-medium">
-                      {stream.time}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setSelectedStream(stream)}
-                          className="bg-[#155DFC]/10 hover:bg-[#155DFC] text-[#155DFC] hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all border border-[#155DFC]/20 cursor-pointer"
-                        >
-                          View Details
-                        </button>
-                        <button
-                          onClick={() => handleCancelStream(stream.id)}
-                          className="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all border border-red-500/20 cursor-pointer"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {scheduledStreams.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-12 bg-[#111111] border border-white/5 rounded-3xl text-center space-y-4 max-w-xl mx-auto animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-400 border border-white/10 shadow-inner">
+              <Calendar size={28} className="text-zinc-500" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-xl font-bold text-white">No Scheduled Streams</h3>
+              <p className="text-zinc-500 text-sm max-w-sm">There are no upcoming scheduled streams at this time.</p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-white/5 text-zinc-500 text-xs uppercase tracking-wider">
+                    <th className="px-6 py-4 font-medium">Stream ID</th>
+                    <th className="px-6 py-4 font-medium">Title</th>
+                    <th className="px-6 py-4 font-medium">Seller</th>
+                    <th className="px-6 py-4 font-medium">Category</th>
+                    <th className="px-6 py-4 font-medium">Scheduled Time</th>
+                    <th className="px-6 py-4 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {scheduledStreams.map((stream: ScheduledStream) => (
+                    <tr key={stream.id} className="text-zinc-300 hover:bg-white/[0.02] transition-colors">
+                      <td className="px-6 py-4 text-xs font-mono text-zinc-500">{stream.id}</td>
+                      <td className="px-6 py-4">
+                        <span className="font-semibold text-zinc-200">{stream.title}</span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-zinc-400">
+                        {stream.seller}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="bg-blue-500/10 text-blue-400 text-[10px] font-bold px-2 py-1 rounded border border-blue-500/20 uppercase">
+                          {stream.category}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-zinc-400 font-medium">
+                        {stream.time}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setSelectedStream(stream)}
+                            className="bg-[#155DFC]/10 hover:bg-[#155DFC] text-[#155DFC] hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all border border-[#155DFC]/20 cursor-pointer"
+                          >
+                            View Details
+                          </button>
+                          <button
+                            onClick={() => handleCancelStream(stream.id)}
+                            className="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all border border-red-500/20 cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Stream Details Modal */}

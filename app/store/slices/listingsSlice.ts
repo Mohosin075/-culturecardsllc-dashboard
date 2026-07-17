@@ -54,7 +54,7 @@ const listingsSlice = createSlice({
       .addCase(fetchListings.fulfilled, (state, action) => {
         state.loading = false;
         state.items = (action.payload || []).map((item: any, idx: number) => {
-          const sellerName = item.sellerId?.fullName || item.sellerId?.name || item.seller || "Seller";
+          const sellerName = item.sellerId?.fullName || item.sellerId?.name || (typeof item.seller === 'object' ? item.seller?.name || item.seller?.fullName : item.seller) || "Seller";
           const rawPrice = item.buyNowPrice || item.estValue || item.startingBid || item.price || 0;
           const formattedPrice = typeof rawPrice === "number"
             ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(rawPrice)
@@ -68,7 +68,7 @@ const listingsSlice = createSlice({
             seller: sellerName,
             item: item.title || item.itemName || "Collector Item",
             price: formattedPrice,
-            category: item.category || "",
+            category: typeof item.category === 'object' ? (item.category?.name || item.category?.title || "") : (item.category || ""),
             views: item.views !== undefined ? item.views : 0,
             status: displayStatus,
             boosted: item.isFeatured !== undefined ? item.isFeatured : (item.boosted || false),
